@@ -37,12 +37,13 @@ const style = {
 
 
 export default function UserPage() {
+  const [page, setPage] = useState(0);
   const [firmaListesi, firmaListesiGuncelle] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/nace_codes');
+        const response = await fetch(`http://localhost:8000/api/nace_codes?page=${page}`);
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -54,7 +55,7 @@ export default function UserPage() {
     };
 
     fetchData();
-  }, []);
+  }, [page]);
 
   
   const [textInput1Edit, setTextInput1Edit] = useState('');
@@ -123,7 +124,6 @@ export default function UserPage() {
   const handleOpenDelete = () => setOpenDelete(true);
   const handleCloseDelete = () => setOpenDelete(false);
 
-  const [page, setPage] = useState(0);
 
   const [order, setOrder] = useState('asc');
 
@@ -191,7 +191,7 @@ export default function UserPage() {
   });
 
   const notFound = !dataFiltered.length && !!filterName;
-
+  console.log(firmaListesi.length)
   return (
     <Container>
 

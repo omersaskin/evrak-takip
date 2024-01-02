@@ -6,7 +6,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 
 export default function UserTableToolbar({ numSelected, filterName, onFilterName, firmaListesi }) {
-  
+    
   return (
     <Toolbar
       sx={{
@@ -33,9 +33,9 @@ export default function UserTableToolbar({ numSelected, filterName, onFilterName
           variant="outlined"
           sx={{ width: '100%' }} // Set the width to 100%
         >
-          <MenuItem value="">Tüm Firmalar</MenuItem>
+          <MenuItem value="">Lokasyon Seçiniz</MenuItem>
           {firmaListesi.map((firm, key) => (
-            <MenuItem key={key} value={firm.company_title}>
+            <MenuItem key={key} value={firm.parent_company_id}>
               {firm.company_title}
             </MenuItem>
           ))}

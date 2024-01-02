@@ -46,7 +46,9 @@ const style = {
 
 
 export default function UserPage() {
+  const [filterName, setFilterName] = useState('');
   const [firmaListesiNace, firmaListesiGuncelleNace] = useState([]);
+  const [firmaListesiTablo, firmaListesiTabloGuncelle] = useState([]);
   const [isSelected, setIsSelected] = useState('');
   useEffect(() => {
     const fetchData = async () => {
@@ -80,7 +82,7 @@ export default function UserPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/get_main_companies');
+        const response = await fetch(`http://localhost:8000/api/get_main_companies`);
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -94,6 +96,23 @@ export default function UserPage() {
     fetchData();
   }, []);
   
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/get_main_companies?parent_company_id=${filterName}`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok.');
+        }
+        const jsonData = await response.json();
+        firmaListesiTabloGuncelle(jsonData.original);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [filterName]);
+
   const [textInput1Edit, setTextInput1Edit] = useState('');
   const [textInput2Edit, setTextInput2Edit] = useState('');
 
@@ -155,7 +174,7 @@ export default function UserPage() {
 
   const [orderBy, setOrderBy] = useState('title');
 
-  const [filterName, setFilterName] = useState('');
+  
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -222,7 +241,7 @@ export default function UserPage() {
   const notFoundNace = !dataFilteredNace.length && !!filterNameNace;
 
   const dataFiltered = applyFilter({
-    inputData: firmaListesi,
+    inputData: typeof(filterName) === 'string' ? [] : firmaListesiTablo,
     comparator: getComparator(order, orderBy),
     filterName,
   });
@@ -253,7 +272,7 @@ export default function UserPage() {
               <UserTableHead
                 order={order}
                 orderBy={orderBy}
-                rowCount={firmaListesi.length}
+                rowCount={firmaListesiTablo.length}
                 onRequestSort={handleSort}
                 headLabel={[
                   { id: 'lokasyon-adi', label: 'Lokasyon Adı' },
@@ -276,7 +295,7 @@ export default function UserPage() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, firmaListesi.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, firmaListesiTablo.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -289,7 +308,7 @@ export default function UserPage() {
         <TablePagination
           page={page}
           component="div"
-          count={firmaListesi.length}
+          count={firmaListesiTablo.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25]}

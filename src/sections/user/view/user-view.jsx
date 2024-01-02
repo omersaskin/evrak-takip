@@ -51,6 +51,7 @@ const VisuallyHiddenInput = styled('input')({
 
 
 export default function UserPage() {
+  const [selectedRow, setSelectedRow] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
 
   const handleImageUpload = (event) => {
@@ -108,6 +109,51 @@ export default function UserPage() {
       handleClose(); // Close the modal after adding the company
     } catch (error) {
       console.error('Error adding company:', error);
+      // Handle error, show a message, etc.
+    }
+  };
+
+  const handleCompanyUpdate = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/companies/${selectedRow}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          company_title: textInput1Edit, // Yeni firma tam ünvanı
+          short_name: textInput2Edit, // Yeni firma kısa adı
+          firm_type_id: selectValue1Edit, // Yeni firma tipi
+          // Diğer gerekli alanları buraya ekleyin
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update company');
+      }
+      
+      handleCloseEdit(); // Güncelleme işleminden sonra modalı kapatın
+    } catch (error) {
+      console.error('Error updating company:', error);
+      // Hata yönetimi yapabilir, bir mesaj gösterebilirsiniz
+    }
+  };
+  
+  const handleCompanyDelete = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/companies/${selectedRow}`, {
+        method: 'DELETE',
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to delete company');
+      }
+  
+      handleCloseDelete(); // Close the modal after successful deletion
+      // Potentially, you might want to update the list of companies after deletion
+      // You could refetch the data or remove the deleted item from the local state
+    } catch (error) {
+      console.error('Error deleting company:', error);
       // Handle error, show a message, etc.
     }
   };
@@ -185,7 +231,7 @@ export default function UserPage() {
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
+console.log(selectedRow);
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
     if (id !== '') {
@@ -270,6 +316,8 @@ export default function UserPage() {
                   .map((row) => (
                     <UserTableRow
                       key={row.id}
+                      id={row.id}
+                      setSelectedRow={setSelectedRow}
                       company_title={row.company_title}
                       short_name={row.short_name}
                       isVerified={row.isVerified}
@@ -410,7 +458,7 @@ export default function UserPage() {
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <Button type="submit" variant="contained" color="primary">
+              <Button onClick={handleCompanyUpdate} type="submit" variant="contained" color="primary">
                 Kaydet
               </Button>
             </Grid>
@@ -434,16 +482,17 @@ export default function UserPage() {
       </Grid>
       <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
         <Button
-          type="submit"
           variant="contained"
           color="primary"
           style={{ width: '100%', textAlign: 'center' }}
+          onClick={handleCompanyDelete}
         >
           Evet
         </Button>
       </Grid>
       <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
         <Button
+          onClick={handleCloseDelete}
           type="submit"
           variant="contained"
           color="primary"
