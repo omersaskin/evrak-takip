@@ -6,6 +6,7 @@ import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import { styled } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
@@ -34,10 +35,38 @@ const style = {
   boxShadow: 24,
 };
 
+const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1,
+});
+
 // ----------------------------------------------------------------------
 
 
 export default function UserPage() {
+  const [uploadedImage, setUploadedImage] = useState(null);
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0]; // Get the uploaded file
+    const reader = new FileReader();
+  
+    reader.onload = (e) => {
+      setUploadedImage(e.target.result);
+    };
+  
+    // Read the uploaded file as a data URL
+    reader.readAsDataURL(file);
+  };
+  
+
+
   const [firmaListesi, firmaListesiGuncelle] = useState([]);
 
   useEffect(() => {
@@ -56,6 +85,32 @@ export default function UserPage() {
 
     fetchData();
   }, []);
+
+  const handleCompanyAdd = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/companies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          company_title: textInput1, // Assuming textInput1 holds the full company name
+          short_name: textInput2, // Assuming textInput2 holds the short company name
+          firm_type_id: selectValue1, // Assuming selectValue1 holds the company type
+          // Add other necessary fields as needed
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add company');
+      }
+      
+      handleClose(); // Close the modal after adding the company
+    } catch (error) {
+      console.error('Error adding company:', error);
+      // Handle error, show a message, etc.
+    }
+  };
 
   console.log(firmaListesi)
   const [textInput1Edit, setTextInput1Edit] = useState('');
@@ -109,6 +164,8 @@ export default function UserPage() {
     console.log('TextInput 1:', textInput1);
     console.log('TextInput 2:', textInput2);
     console.log('SelectBox 1:', selectValue1);
+
+    
   };
 
   const [open, setOpen] = useState(false);
@@ -123,8 +180,6 @@ export default function UserPage() {
 
   const [order, setOrder] = useState('asc');
 
-  const [selected, setSelected] = useState([]);
-
   const [orderBy, setOrderBy] = useState('title');
 
   const [filterName, setFilterName] = useState('');
@@ -137,33 +192,6 @@ export default function UserPage() {
       setOrder(isAsc ? 'desc' : 'asc');
       setOrderBy(id);
     }
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = firmaListesi.map((n) => n.title);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleClick = (event, title) => {
-    const selectedIndex = selected.indexOf(title);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, title);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -188,6 +216,24 @@ export default function UserPage() {
 
   const notFound = !dataFiltered.length && !!filterName;
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/companies?search=${filterName}&per_page=${rowsPerPage}&parent_company_id=0`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok.');
+        }
+        const jsonData = await response.json();
+        firmaListesiGuncelle(jsonData.original.data);
+        console.log(jsonData)
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [filterName, rowsPerPage])
+
   return (
     <Container>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
@@ -200,21 +246,19 @@ export default function UserPage() {
 
       <Card>
         <UserTableToolbar
-          numSelected={selected.length}
           filterName={filterName}
           onFilterName={handleFilterByName}
         />
 
         <Scrollbar>
+        <div style={{ maxHeight: '400px', overflowY: 'scroll' }}>
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 800 }}>
               <UserTableHead
                 order={order}
                 orderBy={orderBy}
                 rowCount={firmaListesi.length}
-                numSelected={selected.length}
                 onRequestSort={handleSort}
-                onSelectAllClick={handleSelectAllClick}
                 headLabel={[
                   { id: 'company', label: 'Firma' },
                   { id: '' },
@@ -229,8 +273,6 @@ export default function UserPage() {
                       company_title={row.company_title}
                       short_name={row.short_name}
                       isVerified={row.isVerified}
-                      selected={selected.indexOf(row.title) !== -1}
-                      handleClick={(event) => handleClick(event, row.title)}
                       handleOpenEdit={handleOpenEdit}
                       handleOpenDelete={handleOpenDelete}
                     />
@@ -245,6 +287,7 @@ export default function UserPage() {
               </TableBody>
             </Table>
           </TableContainer>
+          </div>
         </Scrollbar>
 
         <TablePagination
@@ -267,6 +310,21 @@ export default function UserPage() {
       <Box sx={style}>
       <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
+          <Grid item xs={12}>
+          <Button component="label" variant="contained">
+            Fotoğraf Yükle
+            <VisuallyHiddenInput type="file" onChange={handleImageUpload} />
+          </Button>
+        </Grid>
+        <Grid item xs={12}>
+          {uploadedImage && (
+            <img
+              src={uploadedImage}
+              alt="Uploaded"
+              style={{ maxWidth: 100, height: 100, borderRadius: '50%' }}
+            />
+          )}
+        </Grid>
             <Grid item xs={12}>
               <TextField
                 label="Firma Tam Ünvan"
@@ -294,13 +352,13 @@ export default function UserPage() {
                   onChange={handleSelectChange1}
                   variant="outlined"
                 >
-                  <MenuItem value="0">Tüzel Kişilik</MenuItem>
-                  <MenuItem value="1">Gerçek Kişilik</MenuItem>
+                  <MenuItem value="0">Tüzel</MenuItem>
+                  <MenuItem value="1">Firma</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <Button type="submit" variant="contained" color="primary">
+              <Button type="submit" variant="contained" color="primary" onClick={handleCompanyAdd}>
                 Kaydet
               </Button>
             </Grid>
@@ -346,8 +404,8 @@ export default function UserPage() {
                   onChange={handleSelectChange1Edit}
                   variant="outlined"
                 >
-                  <MenuItem value="0">Tüzel Kişilik</MenuItem>
-                  <MenuItem value="1">Gerçek Kişilik</MenuItem>
+                  <MenuItem value="0">Tüzel</MenuItem>
+                  <MenuItem value="1">Firma</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

@@ -42,12 +42,12 @@ export default function UserPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+        const response = await fetch('http://localhost:8000/api/nace_codes');
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
         const jsonData = await response.json();
-        firmaListesiGuncelle(jsonData);
+        firmaListesiGuncelle(jsonData.original.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -209,6 +209,7 @@ export default function UserPage() {
         />
 
         <Scrollbar>
+        <div style={{ maxHeight: '400px', overflowY: 'scroll' }}>
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 800 }}>
               <UserTableHead
@@ -230,12 +231,9 @@ export default function UserPage() {
                   .map((row) => (
                     <UserTableRow
                       key={row.id}
-                      name={row.title}
-                      role={row.role}
-                      status={row.status}
-                      company={row.title}
-                      avatarUrl={row.avatarUrl}
-                      isVerified={row.isVerified}
+                      nace_code={row.nace_code}
+                      business={row.business}
+                      hazard_class={row.hazard_class}
                       selected={selected.indexOf(row.title) !== -1}
                       handleClick={(event) => handleClick(event, row.title)}
                       handleOpenEdit={handleOpenEdit}
@@ -252,6 +250,7 @@ export default function UserPage() {
               </TableBody>
             </Table>
           </TableContainer>
+          </div>
         </Scrollbar>
 
         <TablePagination
@@ -301,8 +300,8 @@ export default function UserPage() {
                   onChange={handleSelectChange1}
                   variant="outlined"
                 >
-                  <MenuItem value="0">Tüzel Kişilik</MenuItem>
-                  <MenuItem value="1">Gerçek Kişilik</MenuItem>
+                  <MenuItem value="0">Tüzel</MenuItem>
+                  <MenuItem value="1">Firma</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -368,8 +367,8 @@ export default function UserPage() {
                   onChange={handleSelectChange1Edit}
                   variant="outlined"
                 >
-                  <MenuItem value="0">Tüzel Kişilik</MenuItem>
-                  <MenuItem value="1">Gerçek Kişilik</MenuItem>
+                  <MenuItem value="0">Tüzel</MenuItem>
+                  <MenuItem value="1">Firma</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

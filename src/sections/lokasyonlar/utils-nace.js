@@ -10,7 +10,7 @@ export const visuallyHidden = {
   clip: 'rect(0 0 0 0)',
 };
 
-export function emptyRows(page, rowsPerPage, arrayLength) {
+export function emptyRowsNace(page, rowsPerPage, arrayLength) {
   return page ? Math.max(0, (1 + page) * rowsPerPage - arrayLength) : 0;
 }
 
@@ -29,13 +29,13 @@ function descendingComparator(a, b, orderBy) {
   }
   return 0;
 }
-export function getComparator(order, orderBy) {
+export function getComparatorNace(order, orderBy) {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-export function applyFilter({ inputData, comparator, filterName }) {
+export function applyFilterNace({ inputData, comparator, filterName }) {
   const stabilizedThis = inputData.map((el, index) => [el, index]);
 
   stabilizedThis.sort((a, b) => {

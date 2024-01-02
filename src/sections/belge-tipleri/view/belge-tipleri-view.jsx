@@ -334,8 +334,8 @@ export default function UserPage() {
                   onChange={handleSelectChange1Edit}
                   variant="outlined"
                 >
-                  <MenuItem value="0">Tüzel Kişilik</MenuItem>
-                  <MenuItem value="1">Gerçek Kişilik</MenuItem>
+                  <MenuItem value="0">Tüzel</MenuItem>
+                  <MenuItem value="1">Firma</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

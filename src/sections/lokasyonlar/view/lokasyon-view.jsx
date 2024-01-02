@@ -22,10 +22,14 @@ import TableNoData from '../table-no-data';
 import UserTableRow from '../user-table-row';
 import UserTableHead from '../user-table-head';
 import TableEmptyRows from '../table-empty-rows';
+import TableNoDataNace from '../table-no-data-nace';
 import UserTableToolbar from '../user-table-toolbar';
+import UserTableRowNace from '../user-table-row-nace';
+import UserTableHeadNace from '../user-table-head-nace';
+import TableEmptyRowsNace from '../table-empty-rows-nace';
+import UserTableToolbarNace from '../user-table-toolbar-nace';
 import { emptyRows, applyFilter, getComparator } from '../utils';
-
-
+import { emptyRowsNace, applyFilterNace, getComparatorNace } from '../utils-nace';
 
 const style = {
   width: '90%', maxWidth: 1000, mx: 'auto', p: 2,
@@ -42,6 +46,29 @@ const style = {
 
 
 export default function UserPage() {
+  const [firmaListesiNace, firmaListesiGuncelleNace] = useState([]);
+  const [isSelected, setIsSelected] = useState('');
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/nace_codes');
+        if (!response.ok) {
+          throw new Error('Network response was not ok.');
+        }
+        const jsonData = await response.json();
+        firmaListesiGuncelleNace(jsonData.original.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const [openNaceModal, setOpenNaceModal] = useState(false);
+  const handleOpenNaceModal = () => setOpenNaceModal(true);
+  const handleCloseNaceModal = () => setOpenNaceModal(false);
+
   const [adres, setAdres] = useState('');
 
   const handleAdresChange = (event) => {
@@ -66,7 +93,6 @@ export default function UserPage() {
 
     fetchData();
   }, []);
-  console.log(firmaListesi);
   
   const [textInput1Edit, setTextInput1Edit] = useState('');
   const [textInput2Edit, setTextInput2Edit] = useState('');
@@ -126,7 +152,6 @@ export default function UserPage() {
 
   const [order, setOrder] = useState('asc');
 
-  const [selected, setSelected] = useState([]);
 
   const [orderBy, setOrderBy] = useState('title');
 
@@ -142,31 +167,22 @@ export default function UserPage() {
     }
   };
 
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = firmaListesi.map((n) => n.title);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
+  const [pageNace, setPageNace] = useState(0);
 
-  const handleClick = (event, title) => {
-    const selectedIndex = selected.indexOf(title);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, title);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
+  const [orderNace, setOrderNace] = useState('asc');
+
+  const [orderByNace, setOrderByNace] = useState('title');
+
+  const [filterNameNace, setFilterNameNace] = useState('');
+
+  const [rowsPerPageNace, setRowsPerPageNace] = useState(5);
+
+  const handleSortNace = (event, id) => {
+    const isAsc = orderByNace === id && orderNace === 'asc';
+    if (id !== '') {
+      setOrderNace(isAsc ? 'desc' : 'asc');
+      setOrderByNace(id);
     }
-    setSelected(newSelected);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -182,6 +198,28 @@ export default function UserPage() {
     setPage(0);
     setFilterName(event.target.value);
   };
+
+  const handleChangePageNace = (event, newPage) => {
+    setPageNace(newPage);
+  };
+
+  const handleChangeRowsPerPageNace = (event) => {
+    setPageNace(0);
+    setRowsPerPageNace(parseInt(event.target.value, 10));
+  };
+
+  const handleFilterByNameNace = (event) => {
+    setPageNace(0);
+    setFilterNameNace(event.target.value);
+  };
+
+  const dataFilteredNace = applyFilterNace({
+    inputData: firmaListesiNace,
+    comparator: getComparatorNace(orderNace, orderByNace),
+    filterName: filterNameNace,
+  });
+  
+  const notFoundNace = !dataFilteredNace.length && !!filterNameNace;
 
   const dataFiltered = applyFilter({
     inputData: firmaListesi,
@@ -203,22 +241,20 @@ export default function UserPage() {
 
       <Card>
         <UserTableToolbar
-          numSelected={selected.length}
           filterName={filterName}
           onFilterName={handleFilterByName}
           firmaListesi={firmaListesi}
         />
 
         <Scrollbar>
+        <div style={{ maxHeight: '400px', overflowY: 'scroll' }}>
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 800 }}>
               <UserTableHead
                 order={order}
                 orderBy={orderBy}
                 rowCount={firmaListesi.length}
-                numSelected={selected.length}
                 onRequestSort={handleSort}
-                onSelectAllClick={handleSelectAllClick}
                 headLabel={[
                   { id: 'lokasyon-adi', label: 'Lokasyon Adı' },
                   { id: 'sgk-numarasi', label: 'SGK Numrası' },
@@ -233,8 +269,6 @@ export default function UserPage() {
                   .map((row) => (
                     <UserTableRow
                       key={row.id}
-                      selected={selected.indexOf(row.title) !== -1}
-                      handleClick={(event) => handleClick(event, row.title)}
                       handleOpenEdit={handleOpenEdit}
                       handleOpenDelete={handleOpenDelete}
                     />
@@ -249,6 +283,7 @@ export default function UserPage() {
               </TableBody>
             </Table>
           </TableContainer>
+          </div>
         </Scrollbar>
 
         <TablePagination
@@ -290,20 +325,15 @@ export default function UserPage() {
               />
             </Grid>
             <Grid item xs={12}>
-              <OutlinedInput
-                value={filterName}
-                onChange={handleFilterByName}
-                placeholder="Nace Kodu ara..."
-                startAdornment={
-                  <InputAdornment position="start">
-                    <Iconify
-                      icon="eva:search-fill"
-                      sx={{ color: 'text.disabled', width: 20, height: 20 }}
-                    />
-                  </InputAdornment>
-                }
-              />
-            </Grid>
+            <Button
+  variant="contained"
+  onClick={handleOpenNaceModal}
+>
+  Nace Kodu Seç
+</Button>
+<span style={{ marginLeft: 10 }}>{isSelected}</span>
+</Grid>
+
             <Grid item xs={6}>
               <FormControl fullWidth>
                 <InputLabel>İl Seçiniz</InputLabel>
@@ -313,8 +343,8 @@ export default function UserPage() {
                   onChange={handleSelectChange1}
                   variant="outlined"
                 >
-                  <MenuItem value="0">Tüzel Kişilik</MenuItem>
-                  <MenuItem value="1">Gerçek Kişilik</MenuItem>
+                  <MenuItem value="0">Tüzel</MenuItem>
+                  <MenuItem value="1">Firma</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -327,8 +357,8 @@ export default function UserPage() {
                   onChange={handleSelectChange1}
                   variant="outlined"
                 >
-                  <MenuItem value="0">Tüzel Kişilik</MenuItem>
-                  <MenuItem value="1">Gerçek Kişilik</MenuItem>
+                  <MenuItem value="0">Tüzel</MenuItem>
+                  <MenuItem value="1">Firma</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -385,7 +415,7 @@ export default function UserPage() {
             <Grid item xs={12}>
               <OutlinedInput
                 value={filterName}
-                onChange={handleFilterByName}
+                onChange={handleFilterByNameNace}
                 placeholder="Nace Kodu ara..."
                 startAdornment={
                   <InputAdornment position="start">
@@ -451,6 +481,83 @@ export default function UserPage() {
       </Grid>
     </Grid>
   </Box>
+</Modal>
+<Modal
+  open={openNaceModal}
+  onClose={handleCloseNaceModal}
+  aria-labelledby="nace-modal-title"
+  aria-describedby="nace-modal-description"
+  style={{ marginTop: 100 }}
+>
+<Container>
+
+
+      <Card>
+      <UserTableToolbarNace
+          filterName={filterNameNace}
+          onFilterName={handleFilterByNameNace}
+          firmaListesi={firmaListesiNace}
+        />
+
+        <Scrollbar>
+        <div style={{ maxHeight: '400px', overflowY: 'scroll' }}>
+          <TableContainer sx={{ overflow: 'unset' }}>
+            <Table sx={{ minWidth: 800 }}>
+              <UserTableHeadNace
+                order={order}
+                orderBy={orderBy}
+                rowCount={firmaListesiNace.length}
+                onRequestSort={handleSortNace}
+                headLabel={[
+                  { id: 'nace-kodu', label: 'Nace Kodu' },
+                  { id: 'faaliyet', label: 'Faaliyet' },
+                  { id: 'tehlike-sinifi', label: 'Tehlike Sınıfı' },
+                ]}
+              />
+              <TableBody>
+                {dataFilteredNace
+                  .slice(pageNace * rowsPerPageNace, pageNace * rowsPerPageNace + rowsPerPageNace)
+                  .map((row) => (
+                    <UserTableRowNace
+                      key={row.id}
+                      isSelected={isSelected}
+                      setIsSelected={setIsSelected}
+                      nace_code={row.nace_code}
+                      business={row.business}
+                      hazard_class={row.hazard_class}
+                      isVerified={row.isVerified}
+                      handleOpenEdit={handleOpenEdit}
+                      handleOpenDelete={handleOpenDelete}
+                      setOpenNaceModal={setOpenNaceModal}
+                    />
+                  ))}
+
+                <TableEmptyRowsNace
+                  height={77}
+                  emptyRows={emptyRowsNace(pageNace, rowsPerPageNace, firmaListesiNace.length)}
+                />
+
+                {notFoundNace && <TableNoDataNace query={filterName} />}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
+
+        </Scrollbar>
+
+        <TablePagination
+          page={pageNace}
+          component="div"
+          count={firmaListesiNace.length}
+          rowsPerPage={rowsPerPageNace}
+          onPageChange={handleChangePageNace}
+          rowsPerPageOptions={[5, 10, 25]}
+          onRowsPerPageChange={handleChangeRowsPerPageNace}
+        />
+      </Card>
+
+
+    </Container>
 </Modal>
 
     </Container>

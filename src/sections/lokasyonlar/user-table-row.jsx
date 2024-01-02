@@ -12,16 +12,17 @@ import IconButton from '@mui/material/IconButton';
 
 import Iconify from 'src/components/iconify';
 
+import './styles.css';
 // ----------------------------------------------------------------------
 
 export default function UserTableRow({
   selected,
-  name,
-  avatarUrl,
-  company,
+  nace_code,
+  hazard_class,
+  business,
   handleClick,
   handleOpenEdit,
-  handleOpenDelete
+  handleOpenDelete,
 }) {
   const [open, setOpen] = useState(null);
 
@@ -42,14 +43,14 @@ export default function UserTableRow({
           <Stack direction="row" alignItems="center" spacing={2}>
            
             <Typography variant="subtitle2" noWrap>
-              {name}
+              {nace_code}
             </Typography>
           </Stack>
         </Stack>
         </TableCell>
 
-        <TableCell>{company}</TableCell>
-        <TableCell>{company}</TableCell>
+        <TableCell>{business}</TableCell>
+        <TableCell>{hazard_class}</TableCell>
         <TableCell>
           
         <Typography variant="body2" noWrap style={{ backgroundColor: 'orange', color: '#fff', padding: 5, borderRadius: 10 }}>
@@ -74,14 +75,38 @@ export default function UserTableRow({
           sx: { width: 140 },
         }}
       >
-        <MenuItem onClick={handleCloseMenu}>
-          <Button onClick={handleOpenEdit} startIcon={<Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />}>
+        <MenuItem onClick={handleOpenEdit} sx={{ width: '100%' }}>
+          <Button
+            disableRipple // Disable the ripple effect on click
+            startIcon={<Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />}
+            fullWidth
+            sx={{
+              '&:hover': {
+                backgroundColor: 'transparent', // Prevent hover color change
+              },
+              '&:active': {
+                backgroundColor: 'transparent', // Prevent click color change
+              },
+            }}
+          >
             Düzenle
           </Button>
         </MenuItem>
 
-        <MenuItem onClick={handleCloseMenu} sx={{ color: 'error.main' }}>
-          <Button onClick={handleOpenDelete} startIcon={<Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />}>
+        <MenuItem onClick={handleOpenDelete} sx={{ color: 'error.main', width: '100%' }}>
+          <Button
+            disableRipple // Disable the ripple effect on click
+            startIcon={<Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />}
+            fullWidth
+            sx={{
+              '&:hover': {
+                backgroundColor: 'transparent', // Prevent hover color change
+              },
+              '&:active': {
+                backgroundColor: 'transparent', // Prevent click color change
+              },
+            }}
+          >
             Sil
           </Button>
         </MenuItem>
@@ -91,10 +116,10 @@ export default function UserTableRow({
 }
 
 UserTableRow.propTypes = {
-  avatarUrl: PropTypes.any,
-  company: PropTypes.any,
+  nace_code: PropTypes.any,
+  business: PropTypes.any,
   handleClick: PropTypes.func,
-  name: PropTypes.any,
+  hazard_class: PropTypes.any,
   selected: PropTypes.any,
   handleOpenEdit: PropTypes.func,
   handleOpenDelete: PropTypes.func,

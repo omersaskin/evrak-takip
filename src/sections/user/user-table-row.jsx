@@ -35,23 +35,25 @@ export default function UserTableRow({
 
   return (
     <>
-      <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-
-      <TableCell component="th" scope="row" padding="none">
-        <Stack direction="column" alignItems="flex-start" spacing={2} pl={2} pt={1} pb={1}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Avatar alt="deneme" src="https://picsum.photos/200" style={{ width: 60, height: 60 }} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="subtitle2" noWrap>
-                {company_title}
-              </Typography>
-              <Typography variant="body2" noWrap style={{ fontSize: 12, fontStyle: 'italic' }}>
+      <TableRow
+        hover
+        tabIndex={-1}
+      >
+        <TableCell component="th" scope="row" padding="none">
+          <Stack direction="column" alignItems="flex-start" spacing={2} pl={2} pt={1} pb={1}>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Avatar alt="deneme" src="https://picsum.photos/200" style={{ width: 60, height: 60 }} />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="subtitle2" noWrap>
+                  {company_title}
+                </Typography>
+                <Typography variant="body2" noWrap style={{ fontSize: 12, fontStyle: 'italic' }}>
                   {short_name}
-              </Typography>
-            </div>
+                </Typography>
+              </div>
+            </Stack>
           </Stack>
-        </Stack>
-      </TableCell>
+        </TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenMenu}>
@@ -70,14 +72,38 @@ export default function UserTableRow({
           sx: { width: 140 },
         }}
       >
-        <MenuItem onClick={handleCloseMenu}>
-          <Button onClick={handleOpenEdit} startIcon={<Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />}>
+        <MenuItem onClick={handleOpenEdit} sx={{ width: '100%' }}>
+          <Button
+            disableRipple // Disable the ripple effect on click
+            startIcon={<Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />}
+            fullWidth
+            sx={{
+              '&:hover': {
+                backgroundColor: 'transparent', // Prevent hover color change
+              },
+              '&:active': {
+                backgroundColor: 'transparent', // Prevent click color change
+              },
+            }}
+          >
             Düzenle
           </Button>
         </MenuItem>
 
-        <MenuItem onClick={handleCloseMenu} sx={{ color: 'error.main' }}>
-          <Button onClick={handleOpenDelete} startIcon={<Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />}>
+        <MenuItem onClick={handleOpenDelete} sx={{ color: 'error.main', width: '100%' }}>
+          <Button
+            disableRipple // Disable the ripple effect on click
+            startIcon={<Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />}
+            fullWidth
+            sx={{
+              '&:hover': {
+                backgroundColor: 'transparent', // Prevent hover color change
+              },
+              '&:active': {
+                backgroundColor: 'transparent', // Prevent click color change
+              },
+            }}
+          >
             Sil
           </Button>
         </MenuItem>

@@ -1,17 +1,13 @@
 import PropTypes from 'prop-types';
 
-// import Tooltip from '@mui/material/Tooltip';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-// import IconButton from '@mui/material/IconButton';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import Iconify from 'src/components/iconify';
 
-// ----------------------------------------------------------------------
-
-export default function UserTableToolbar({ numSelected, filterName, onFilterName }) {
+export default function UserTableToolbar({ numSelected, filterName, onFilterName, firmaListesi }) {
   return (
     <Toolbar
       sx={{
@@ -46,23 +42,7 @@ export default function UserTableToolbar({ numSelected, filterName, onFilterName
         />
       )}
 
-      {
-        /*
-          {numSelected > 0 ? (
-            <Tooltip title="Delete">
-              <IconButton>
-                <Iconify icon="eva:trash-2-fill" />
-              </IconButton>
-            </Tooltip>
-          ) : (
-            <Tooltip title="Filter list">
-              <IconButton>
-                <Iconify icon="ic:round-filter-list" />
-              </IconButton>
-            </Tooltip>
-          )}
-        */
-      }
+      {/* Remaining code */}
     </Toolbar>
   );
 }
@@ -71,4 +51,13 @@ UserTableToolbar.propTypes = {
   numSelected: PropTypes.number,
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
+  firmaListesi: PropTypes.arrayOf(
+    PropTypes.shape({
+      nace_code: PropTypes.string,
+      created_at: PropTypes.string,
+      district_id: PropTypes.number,
+      firm_sgk: PropTypes.string,
+      // Include other properties based on the structure of your objects
+    })
+  ),
 };
