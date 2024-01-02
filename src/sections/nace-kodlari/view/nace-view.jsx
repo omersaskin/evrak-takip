@@ -37,25 +37,28 @@ const style = {
 
 
 export default function UserPage() {
-  const [page, setPage] = useState(0);
   const [firmaListesi, firmaListesiGuncelle] = useState([]);
+  const [page, setPage] = useState(1);
+  const [satirSayisi, satirSayisiGuncelle] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/nace_codes?page=${page}`);
+        const response = await fetch(`http://localhost:8000/api/nace_codes?per_page=${rowsPerPage}&page=${page+1}`);
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
         const jsonData = await response.json();
         firmaListesiGuncelle(jsonData.original.data);
+        satirSayisiGuncelle(jsonData.original.total);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
 
     fetchData();
-  }, [page]);
+  }, [rowsPerPage, page]);
 
   
   const [textInput1Edit, setTextInput1Edit] = useState('');
@@ -132,8 +135,7 @@ export default function UserPage() {
   const [orderBy, setOrderBy] = useState('title');
 
   const [filterName, setFilterName] = useState('');
-
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  
 
   const handleSort = (event, id) => {
     const isAsc = orderBy === id && order === 'asc';
@@ -191,7 +193,7 @@ export default function UserPage() {
   });
 
   const notFound = !dataFiltered.length && !!filterName;
-  console.log(firmaListesi.length)
+  console.log(dataFiltered);
   return (
     <Container>
 
@@ -215,7 +217,7 @@ export default function UserPage() {
               <UserTableHead
                 order={order}
                 orderBy={orderBy}
-                rowCount={firmaListesi.length}
+                rowCount={satirSayisi}
                 numSelected={selected.length}
                 onRequestSort={handleSort}
                 onSelectAllClick={handleSelectAllClick}
@@ -243,7 +245,7 @@ export default function UserPage() {
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, firmaListesi.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, satirSayisi)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -256,7 +258,7 @@ export default function UserPage() {
         <TablePagination
           page={page}
           component="div"
-          count={firmaListesi.length}
+          count={satirSayisi}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25]}
