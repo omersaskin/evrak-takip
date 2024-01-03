@@ -270,11 +270,27 @@ export default function UserPage() {
         // İkinci sekmenin içeriği
         <div style={{ marginTop: 15 }}>
 <Card>
-        <UserTableToolbar
-          numSelected={selected.length}
-          filterName={filterName}
-          onFilterName={handleFilterByName}
-        />
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <div style={{ flex: '1' }}>
+    <UserTableToolbar
+      numSelected={selected.length}
+      filterName={filterName}
+      onFilterName={handleFilterByName}
+    />
+  </div>
+
+  <div style={{ marginLeft: 'auto', marginRight: '20px' }}>
+    <Button
+     
+      onClick={handleOpen}
+      variant="contained"
+      color="inherit"
+      startIcon={<Iconify icon="eva:plus-fill" />}
+    >
+      Belge Ekle
+    </Button>
+  </div>
+</div>
 
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
@@ -336,11 +352,27 @@ export default function UserPage() {
         // Üçüncü sekmenin içeriği
         <div style={{ marginTop: 15 }}>
 <Card>
-        <UserTableToolbar
-          numSelected={selected.length}
-          filterName={filterName}
-          onFilterName={handleFilterByName}
-        />
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <div style={{ flex: '1' }}>
+    <UserTableToolbar
+      numSelected={selected.length}
+      filterName={filterName}
+      onFilterName={handleFilterByName}
+    />
+  </div>
+
+  <div style={{ marginLeft: 'auto', marginRight: '20px' }}>
+    <Button
+     
+      onClick={handleOpen}
+      variant="contained"
+      color="inherit"
+      startIcon={<Iconify icon="eva:plus-fill" />}
+    >
+      Belge Ekle
+    </Button>
+  </div>
+</div>
 
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
