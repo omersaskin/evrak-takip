@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import { Grid, TextField } from '@mui/material';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
-import { Grid, Select, MenuItem, TextField, InputLabel, FormControl } from '@mui/material';
 
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
@@ -38,6 +40,22 @@ const style = {
 
 
 export default function UserPage() {
+  const [currentTab, setCurrentTab] = useState(0);
+
+  const handleTabChange = (event, newValue) => {
+    setCurrentTab(newValue);
+
+    if(newValue === 0) {
+      setSelectValue1("Personel Evrakları");
+    } else if(newValue === 1)
+    {
+      setSelectValue1("Firma Evrakları");
+    } else if(newValue === 2)
+    {
+      setSelectValue1("Sağlık Evrakları");
+    }
+  };
+
   const [firmaListesi, firmaListesiGuncelle] = useState([]);
 
   useEffect(() => {
@@ -57,44 +75,12 @@ export default function UserPage() {
     fetchData();
   }, []);
 
-  
-  const [textInput1Edit, setTextInput1Edit] = useState('');
-  const [textInput2Edit, setTextInput2Edit] = useState('');
-  const [selectValue1Edit, setSelectValue1Edit] = useState('');
 
   const [textInput1, setTextInput1] = useState('');
   const [selectValue1, setSelectValue1] = useState('');
 
-  const handleTextInput1ChangeEdit = (event) => {
-    setTextInput1Edit(event.target.value);
-  };
-
-  const handleTextInput2ChangeEdit = (event) => {
-    setTextInput2Edit(event.target.value);
-  };
-
-  const handleSelectChange1Edit = (event) => {
-    setSelectValue1Edit(event.target.value);
-  };
-
-  const handleSubmitEdit = (event) => {
-    event.preventDefault();
-    // Burada form verilerini istediğiniz şekilde işleyebilirsiniz
-    console.log('TextInput 1:', textInput1Edit);
-    console.log('TextInput 2:', textInput2Edit);
-    console.log('SelectBox 1:', selectValue1Edit);
-  };
-
-  const [openEdit, setOpenEdit] = useState(false);
-  const handleOpenEdit = () => setOpenEdit(true);
-  const handleCloseEdit = () => setOpenEdit(false);
-
   const handleTextInput1Change = (event) => {
     setTextInput1(event.target.value);
-  };
-
-  const handleSelectChange1 = (event) => {
-    setSelectValue1(event.target.value);
   };
 
   const handleSubmit = (event) => {
@@ -191,7 +177,16 @@ export default function UserPage() {
         </Button>
       </Stack>
 
-      <Card>
+      <Tabs value={currentTab} onChange={handleTabChange}>
+        <Tab label="Personel Evrakları" />
+        <Tab label="Firma Evrakları" />
+        <Tab label="Sağlık Evrakları" />
+      </Tabs>
+
+      {currentTab === 0 && (
+        // İlk sekmenin içeriği
+        <div style={{ marginTop: 15 }}>
+<Card>
         <UserTableToolbar
           numSelected={selected.length}
           filterName={filterName}
@@ -227,7 +222,7 @@ export default function UserPage() {
                       isVerified={row.isVerified}
                       selected={selected.indexOf(row.title) !== -1}
                       handleClick={(event) => handleClick(event, row.title)}
-                      handleOpenEdit={handleOpenEdit}
+                     
                       handleOpenDelete={handleOpenDelete}
                     />
                   ))}
@@ -253,6 +248,141 @@ export default function UserPage() {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Card>
+        </div>
+      )}
+      {currentTab === 1 && (
+        // İkinci sekmenin içeriği
+        <div style={{ marginTop: 15 }}>
+<Card>
+        <UserTableToolbar
+          numSelected={selected.length}
+          filterName={filterName}
+          onFilterName={handleFilterByName}
+        />
+
+        <Scrollbar>
+          <TableContainer sx={{ overflow: 'unset' }}>
+            <Table sx={{ minWidth: 800 }}>
+              <UserTableHead
+                order={order}
+                orderBy={orderBy}
+                rowCount={firmaListesi.length}
+                numSelected={selected.length}
+                onRequestSort={handleSort}
+                onSelectAllClick={handleSelectAllClick}
+                headLabel={[
+                  { id: 'company', label: 'Belge Adı' },
+                  { id: 'company', label: 'Belge Tipi' },
+                ]}
+              />
+              <TableBody>
+                {dataFiltered
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row) => (
+                    <UserTableRow
+                      key={row.id}
+                      name={row.title}
+                      role={row.role}
+                      status={row.status}
+                      company={row.title}
+                      avatarUrl={row.avatarUrl}
+                      isVerified={row.isVerified}
+                      selected={selected.indexOf(row.title) !== -1}
+                      handleClick={(event) => handleClick(event, row.title)}
+                      handleOpenDelete={handleOpenDelete}
+                    />
+                  ))}
+
+                <TableEmptyRows
+                  height={77}
+                  emptyRows={emptyRows(page, rowsPerPage, firmaListesi.length)}
+                />
+
+                {notFound && <TableNoData query={filterName} />}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Scrollbar>
+
+        <TablePagination
+          page={page}
+          component="div"
+          count={firmaListesi.length}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          rowsPerPageOptions={[5, 10, 25]}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Card>
+        </div>
+      )}
+      {currentTab === 2 && (
+        // Üçüncü sekmenin içeriği
+        <div style={{ marginTop: 15 }}>
+<Card>
+        <UserTableToolbar
+          numSelected={selected.length}
+          filterName={filterName}
+          onFilterName={handleFilterByName}
+        />
+
+        <Scrollbar>
+          <TableContainer sx={{ overflow: 'unset' }}>
+            <Table sx={{ minWidth: 800 }}>
+              <UserTableHead
+                order={order}
+                orderBy={orderBy}
+                rowCount={firmaListesi.length}
+                numSelected={selected.length}
+                onRequestSort={handleSort}
+                onSelectAllClick={handleSelectAllClick}
+                headLabel={[
+                  { id: 'company', label: 'Belge Adı' },
+                  { id: 'company', label: 'Belge Tipi' },
+                ]}
+              />
+              <TableBody>
+                {dataFiltered
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row) => (
+                    <UserTableRow
+                      key={row.id}
+                      name={row.title}
+                      role={row.role}
+                      status={row.status}
+                      company={row.title}
+                      avatarUrl={row.avatarUrl}
+                      isVerified={row.isVerified}
+                      selected={selected.indexOf(row.title) !== -1}
+                      handleClick={(event) => handleClick(event, row.title)}
+                    />
+                  ))}
+
+                <TableEmptyRows
+                  height={77}
+                  emptyRows={emptyRows(page, rowsPerPage, firmaListesi.length)}
+                />
+
+                {notFound && <TableNoData query={filterName} />}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Scrollbar>
+
+        <TablePagination
+          page={page}
+          component="div"
+          count={firmaListesi.length}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          rowsPerPageOptions={[5, 10, 25]}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Card>
+        </div>
+      )}
+
+      
 
       <Modal
         open={open}
@@ -273,21 +403,6 @@ export default function UserPage() {
               />
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Belge Tipi</InputLabel>
-                <Select
-                  value={selectValue1}
-                  label="Belge Tipi"
-                  onChange={handleSelectChange1}
-                  variant="outlined"
-                >
-                  <MenuItem value="0">Personel Evrakları</MenuItem>
-                  <MenuItem value="1">Firma Evrakları</MenuItem>
-                  <MenuItem value="2">Sağlık Evrakları</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
               <Button type="submit" variant="contained" color="primary">
                 Kaydet
               </Button>
@@ -298,57 +413,6 @@ export default function UserPage() {
         
       </Modal>
 
-      <Modal
-        open={openEdit}
-        onClose={handleCloseEdit}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-      <Box sx={style}>
-      <form onSubmit={handleSubmitEdit}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                label="Firma Tam Ünvan"
-                variant="outlined"
-                value={textInput1Edit}
-                onChange={handleTextInput1ChangeEdit}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Firma Kısa Ad"
-                variant="outlined"
-                value={textInput2Edit}
-                onChange={handleTextInput2ChangeEdit}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Firma Tipi</InputLabel>
-                <Select
-                  value={selectValue1Edit}
-                  label="Firma Tipi"
-                  onChange={handleSelectChange1Edit}
-                  variant="outlined"
-                >
-                  <MenuItem value="0">Tüzel</MenuItem>
-                  <MenuItem value="1">Firma</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <Button type="submit" variant="contained" color="primary">
-                Kaydet
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Box>
-        
-      </Modal>
 
       <Modal
   open={openDelete}
