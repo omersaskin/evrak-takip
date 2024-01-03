@@ -98,6 +98,7 @@ export default function UserPage() {
           company_title: textInput1, // Assuming textInput1 holds the full company name
           short_name: textInput2, // Assuming textInput2 holds the short company name
           firm_type_id: selectValue1, // Assuming selectValue1 holds the company type
+          parent_company_id: 0
           // Add other necessary fields as needed
         }),
       });
