@@ -292,17 +292,30 @@ export default function UserPage() {
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <Typography variant="h4">Lokasyonlar</Typography>
 
-        <Button onClick={handleOpen} disabled={filterName === ''} variant="contained" color="inherit" startIcon={<Iconify icon="eva:plus-fill" />}>
-          Lokasyon Ekle
-        </Button>
       </Stack>
       
       <Card>
-        <UserTableToolbar
-          filterName={filterName}
-          onFilterName={handleFilterByName}
-          firmaListesi={firmaListesi}
-        />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <div style={{ flex: '1' }}>
+    <UserTableToolbar
+      filterName={filterName}
+      onFilterName={handleFilterByName}
+      firmaListesi={firmaListesi}
+    />
+  </div>
+
+  <div style={{ marginLeft: 'auto', marginRight: '20px' }}>
+    <Button
+      disabled={filterName === ''}
+      onClick={handleOpen}
+      variant="contained"
+      color="inherit"
+      startIcon={<Iconify icon="eva:plus-fill" />}
+    >
+      Lokasyon Ekle
+    </Button>
+  </div>
+</div>
 
         <Scrollbar>
         <div style={{ maxHeight: '400px', overflowY: 'scroll' }}>

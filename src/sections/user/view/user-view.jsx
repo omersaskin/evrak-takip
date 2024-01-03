@@ -286,16 +286,30 @@ console.log(selectedRow);
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <Typography variant="h4">Firma Listesi</Typography>
 
-        <Button onClick={handleOpen} variant="contained" color="inherit" startIcon={<Iconify icon="eva:plus-fill" />}>
-          Firma Ekle
-        </Button>
+   
       </Stack>
 
       <Card>
-        <UserTableToolbar
-          filterName={filterName}
-          onFilterName={handleFilterByName}
-        />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <div style={{ flex: '1' }}>
+    <UserTableToolbar
+      filterName={filterName}
+      onFilterName={handleFilterByName}
+    />
+  </div>
+
+  <div style={{ marginLeft: 'auto', marginRight: '20px' }}>
+    <Button
+     
+      onClick={handleOpen}
+      variant="contained"
+      color="inherit"
+      startIcon={<Iconify icon="eva:plus-fill" />}
+    >
+      Firma Ekle
+    </Button>
+  </div>
+</div>
 
         <Scrollbar>
         <div style={{ maxHeight: '400px', overflowY: 'scroll' }}>
