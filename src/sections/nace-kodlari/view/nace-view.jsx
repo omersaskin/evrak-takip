@@ -6,17 +6,20 @@ import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import TableRow from '@mui/material/TableRow';
 import Container from '@mui/material/Container';
 import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
+import LinearProgress from '@mui/material/LinearProgress';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import { Grid, Select, MenuItem, TextField, InputLabel, FormControl } from '@mui/material';
 
 import Scrollbar from 'src/components/scrollbar';
 
+import './styles.css';
 import TableNoData from '../table-no-data';
-import UserTableRow from '../user-table-row';
 import UserTableHead from '../user-table-head';
 import TableEmptyRows from '../table-empty-rows';
 import UserTableToolbar from '../user-table-toolbar';
@@ -37,62 +40,49 @@ const style = {
 
 
 export default function UserPage() {
-  const [firmaListesi, firmaListesiGuncelle] = useState([]);
-  const [page, setPage] = useState(1);
-  const [satirSayisi, satirSayisiGuncelle] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [passengersList, setPassengersList] = useState([]);
+  const [passengersCount, setPassengersCount] = useState(0);
+  const [controller, setController] = useState({
+    page: 0,
+    rowsPerPage: 5,
+    filterName: ''
+  });
+  
 
   useEffect(() => {
-    const fetchData = async () => {
+    const getData = async () => {
+      const url = `http://localhost:8000/api/nace_codes?per_page=${controller.rowsPerPage}&page=${controller.page+1}&search=${controller.filterName}`
       try {
-        const response = await fetch(`http://localhost:8000/api/nace_codes?per_page=${rowsPerPage}&page=${page+1}`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok.');
+        const response = await fetch(url);
+        if (response.statusText === 'OK') {
+          const data = await response.json();
+          console.log(data);
+          setPassengersList(data.original.data);
+          setPassengersCount(data.original.total);
+        } else {
+          throw new Error('Request failed')
         }
-        const jsonData = await response.json();
-        firmaListesiGuncelle(jsonData.original.data);
-        satirSayisiGuncelle(jsonData.original.total);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.log(error);
       }
     };
-
-    fetchData();
-  }, [rowsPerPage, page]);
+    getData();
+  }, [controller, controller.filterName]);
 
   
-  const [textInput1Edit, setTextInput1Edit] = useState('');
-  const [textInput2Edit, setTextInput2Edit] = useState('');
-  const [selectValue1Edit, setSelectValue1Edit] = useState('');
+
 
   const [textInput1, setTextInput1] = useState('');
   const [textInput2, setTextInput2] = useState('');
   const [selectValue1, setSelectValue1] = useState('');
   const [selectValue2, setSelectValue2] = useState('');
 
-  const handleTextInput1ChangeEdit = (event) => {
-    setTextInput1Edit(event.target.value);
-  };
 
-  const handleTextInput2ChangeEdit = (event) => {
-    setTextInput2Edit(event.target.value);
-  };
 
-  const handleSelectChange1Edit = (event) => {
-    setSelectValue1Edit(event.target.value);
-  };
 
-  const handleSubmitEdit = (event) => {
-    event.preventDefault();
-    // Burada form verilerini istediğiniz şekilde işleyebilirsiniz
-    console.log('TextInput 1:', textInput1Edit);
-    console.log('TextInput 2:', textInput2Edit);
-    console.log('SelectBox 1:', selectValue1Edit);
-  };
 
-  const [openEdit, setOpenEdit] = useState(false);
-  const handleOpenEdit = () => setOpenEdit(true);
-  const handleCloseEdit = () => setOpenEdit(false);
+
+
 
   const handleTextInput1Change = (event) => {
     setTextInput1(event.target.value);
@@ -123,9 +113,7 @@ export default function UserPage() {
   
   const handleClose = () => setOpen(false);
 
-  const [openDelete, setOpenDelete] = useState(false);
-  const handleOpenDelete = () => setOpenDelete(true);
-  const handleCloseDelete = () => setOpenDelete(false);
+
 
 
   const [order, setOrder] = useState('asc');
@@ -134,7 +122,7 @@ export default function UserPage() {
 
   const [orderBy, setOrderBy] = useState('title');
 
-  const [filterName, setFilterName] = useState('');
+  
   
 
   const handleSort = (event, id) => {
@@ -147,53 +135,57 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = firmaListesi.map((n) => n.title);
+      const newSelecteds = passengersList.map((n) => n.title);
       setSelected(newSelecteds);
       return;
     }
     setSelected([]);
   };
 
-  const handleClick = (event, title) => {
-    const selectedIndex = selected.indexOf(title);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, title);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
-  };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+
+  
+
+  
+
+  
+
+  const dataFiltered = applyFilter({
+    inputData: passengersList,
+    comparator: getComparator(order, orderBy),
+    filterName: controller.filterName,
+  });
+
+  const notFound = !dataFiltered.length && !!controller.filterName;
+  
+  const handlePageChange = (event, newPage) => {
+    setPassengersList([]);
+    setController({
+      ...controller,
+      page: newPage
+    });
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setPage(0);
-    setRowsPerPage(parseInt(event.target.value, 10));
+    setPassengersList([]);
+    setController({
+      ...controller,
+      rowsPerPage: parseInt(event.target.value, 10),
+      page: 0
+    });
   };
 
-  const handleFilterByName = (event) => {
-    setPage(0);
-    setFilterName(event.target.value);
+  const handleChangeSearch= (event) => {
+    setPassengersList([]);
+    setController({
+      ...controller,
+      filterName: event.target.value,
+      page: 0
+    });
   };
 
-  const dataFiltered = applyFilter({
-    inputData: firmaListesi,
-    comparator: getComparator(order, orderBy),
-    filterName,
-  });
+  console.log(controller.filterName)
 
-  const notFound = !dataFiltered.length && !!filterName;
-  console.log(dataFiltered);
   return (
     <Container>
 
@@ -206,18 +198,21 @@ export default function UserPage() {
       <Card>
         <UserTableToolbar
           numSelected={selected.length}
-          filterName={filterName}
-          onFilterName={handleFilterByName}
+          filterName={controller.filterName}
+          onFilterName={handleChangeSearch}
         />
 
         <Scrollbar>
         <div style={{ maxHeight: '400px', overflowY: 'scroll' }}>
           <TableContainer sx={{ overflow: 'unset' }}>
+          {passengersList.length === 0 && (
+                  <LinearProgress />
+                )}
             <Table sx={{ minWidth: 800 }}>
               <UserTableHead
                 order={order}
                 orderBy={orderBy}
-                rowCount={satirSayisi}
+                rowCount={passengersCount}
                 numSelected={selected.length}
                 onRequestSort={handleSort}
                 onSelectAllClick={handleSelectAllClick}
@@ -227,28 +222,30 @@ export default function UserPage() {
                   { id: 'tehlike-sinifi', label: 'Tehlike Sınıfı' },
                 ]}
               />
+              
               <TableBody>
-                {dataFiltered
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => (
-                    <UserTableRow
-                      key={row.id}
-                      nace_code={row.nace_code}
-                      business={row.business}
-                      hazard_class={row.hazard_class}
-                      selected={selected.indexOf(row.title) !== -1}
-                      handleClick={(event) => handleClick(event, row.title)}
-                      handleOpenEdit={handleOpenEdit}
-                      handleOpenDelete={handleOpenDelete}
-                    />
-                  ))}
+              {
+                passengersList.map((passenger) => (
+                  <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
+
+                <TableCell>{passenger.nace_code}</TableCell>
+                <TableCell>{passenger.business}</TableCell>
+                <TableCell>
+                  <Typography variant="body2" noWrap style={{ backgroundColor: 'orange', color: '#fff', padding: 5, borderRadius: 10 }}>
+                    {passenger.hazard_class}
+                  </Typography>  
+                </TableCell>
+
+              </TableRow>
+                ))
+              }
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, satirSayisi)}
+                  emptyRows={emptyRows(controller.page, controller.rowsPerPage, passengersCount)}
                 />
 
-                {notFound && <TableNoData query={filterName} />}
+                {notFound && <TableNoData query={controller.filterName} />}
               </TableBody>
             </Table>
           </TableContainer>
@@ -256,11 +253,11 @@ export default function UserPage() {
         </Scrollbar>
 
         <TablePagination
-          page={page}
+          page={controller.page}
           component="div"
-          count={satirSayisi}
-          rowsPerPage={rowsPerPage}
-          onPageChange={handleChangePage}
+          count={passengersCount}
+          rowsPerPage={controller.rowsPerPage}
+          onPageChange={handlePageChange}
           rowsPerPageOptions={[5, 10, 25]}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
@@ -316,7 +313,7 @@ export default function UserPage() {
                   onChange={handleSelectChange2}
                   variant="outlined"
                 >
-                  {firmaListesi.map(item => (
+                  {passengersList.map(item => (
                     <MenuItem value={item.title}>{item.title}</MenuItem>
                   ))}
                 </Select>
@@ -333,94 +330,7 @@ export default function UserPage() {
         
       </Modal>
 
-      <Modal
-        open={openEdit}
-        onClose={handleCloseEdit}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-      <Box sx={style}>
-      <form onSubmit={handleSubmitEdit}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                label="Firma Tam Ünvan"
-                variant="outlined"
-                value={textInput1Edit}
-                onChange={handleTextInput1ChangeEdit}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Firma Kısa Ad"
-                variant="outlined"
-                value={textInput2Edit}
-                onChange={handleTextInput2ChangeEdit}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Firma Tipi</InputLabel>
-                <Select
-                  value={selectValue1Edit}
-                  label="Firma Tipi"
-                  onChange={handleSelectChange1Edit}
-                  variant="outlined"
-                >
-                  <MenuItem value="0">Tüzel</MenuItem>
-                  <MenuItem value="1">Firma</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <Button type="submit" variant="contained" color="primary">
-                Kaydet
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Box>
-        
-      </Modal>
-
-      <Modal
-  open={openDelete}
-  onClose={handleCloseDelete}
-  aria-labelledby="modal-modal-title"
-  aria-describedby="modal-modal-description"
->
-  <Box sx={style}>
-    <Grid container spacing={2}>
-      
-    <Grid item xs={12} style={{ textAlign: 'center' }}>
-        <Typography>Silmek istediğinize emin misiniz?</Typography>
-      </Grid>
-      <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          style={{ width: '100%', textAlign: 'center' }}
-        >
-          Evet
-        </Button>
-      </Grid>
-      <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          style={{ width: '100%', textAlign: 'center' }}
-        >
-          Hayır
-        </Button>
-      </Grid>
-    </Grid>
-  </Box>
-</Modal>
-
+  
     </Container>
   );
 }
