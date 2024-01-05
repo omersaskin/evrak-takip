@@ -11,9 +11,7 @@ import Container from '@mui/material/Container';
 import TableCell from '@mui/material/TableCell';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import LinearProgress from '@mui/material/LinearProgress';
-import InputAdornment from '@mui/material/InputAdornment';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import { Grid, Select, MenuItem, TextField, InputLabel, FormControl } from '@mui/material';
@@ -47,6 +45,7 @@ const style = {
 
 export default function UserPage() {
   const [filterName, setFilterName] = useState('');
+  const [naceCodeId, naceCodeIdGuncelle] = useState('');
   const [firmaListesiTablo, firmaListesiTabloGuncelle] = useState([]);
   const [isSelected, setIsSelected] = useState('');
 
@@ -116,39 +115,7 @@ export default function UserPage() {
 
   const [firmaListesi, firmaListesiGuncelle] = useState([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`http://localhost:8000/api/get_main_companies`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok.');
-        }
-        const jsonData = await response.json();
-        firmaListesiGuncelle(jsonData.original);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  }, []);
   
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`http://localhost:8000/api/get_main_companies?parent_company_id=${filterName}`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok.');
-        }
-        const jsonData = await response.json();
-        firmaListesiTabloGuncelle(jsonData.original);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  }, [filterName]);
 
   const [textInput1Edit, setTextInput1Edit] = useState('');
   const [textInput2Edit, setTextInput2Edit] = useState('');
@@ -250,12 +217,117 @@ export default function UserPage() {
     setPage(0);
     setFilterName(event.target.value);
   };
+  console.log(textInput1);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/get_main_companies`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok.');
+        }
+        const jsonData = await response.json();
+        firmaListesiGuncelle(jsonData.original);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
 
-
-
-
+    fetchData();
+  }, []);
   
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/companies?parent_company_id=${filterName}`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok.');
+        }
+        const jsonData = await response.json();
+        firmaListesiTabloGuncelle(jsonData.original.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [filterName]);
+  
+  const handleLocationAdd = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/companies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          company_title: textInput1, // Assuming textInput1 holds the full company name
+          short_name: "null",
+          parent_company_id: filterName,
+          nace_code_id: naceCodeId,
+          firm_sgk: textInput2,
+          province_id: 1,
+          district_id: 1
+          // Add other necessary fields as needed
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add company');
+      }
+      
+      handleClose(); // Close the modal after adding the company
+    } catch (error) {
+      console.error('Error adding company:', error);
+      // Handle error, show a message, etc.
+    }
+  };
+
+  const handleLocationUpdate = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/companies/${filterName}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          company_title: textInput1Edit, // Yeni firma tam ünvanı
+          // Diğer gerekli alanları buraya ekleyin
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update company');
+      }
+      
+      handleCloseEdit(); // Güncelleme işleminden sonra modalı kapatın
+    } catch (error) {
+      console.error('Error updating company:', error);
+      // Hata yönetimi yapabilir, bir mesaj gösterebilirsiniz
+    }
+  };
+  
+  const handleLocationDelete = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/companies/${filterName}`, {
+        method: 'DELETE',
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to delete company');
+      }
+  
+      handleCloseDelete(); // Close the modal after successful deletion
+      // Potentially, you might want to update the list of companies after deletion
+      // You could refetch the data or remove the deleted item from the local state
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      // Handle error, show a message, etc.
+    }
+  };
+
+
+  console.log(naceCodeId);
 
   const dataFilteredNace = applyFilterNace({
     inputData: passengersList,
@@ -273,16 +345,17 @@ export default function UserPage() {
 
   const notFound = !dataFiltered.length && !!filterName;
 
-  const handleRowClick = (nace_code, hazard_class) => {
+  const handleRowClick = (nace_code, hazard_class, nace_code_id) => {
     setIsSelected(`${nace_code} - ${hazard_class}`);
     setOpenNaceModal(false);
+    naceCodeIdGuncelle(nace_code_id);
   };
 
 
   const rowStyles = {
     cursor: 'pointer',
     '&:hover': {
-      backgroundColor: '#f5f5f5', // Change the color to your desired hover color
+      backgroundColor: '#F4F6F8', // Change the color to your desired hover color
     },
   };
 
@@ -341,8 +414,14 @@ export default function UserPage() {
                   .map((row) => (
                     <UserTableRow
                       key={row.id}
+                      passengersList={passengersList}
                       handleOpenEdit={handleOpenEdit}
                       handleOpenDelete={handleOpenDelete}
+                      naceCodeId={naceCodeId}
+                      filterName={filterName}
+                      firmaListesi={firmaListesi}
+                      firm_sgk={row.firm_sgk}
+                      company_title={row.company_title}
                     />
                   ))}
 
@@ -447,7 +526,7 @@ export default function UserPage() {
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <Button type="submit" variant="contained" color="primary">
+              <Button onClick={handleLocationAdd} type="submit" variant="contained" color="primary">
                 Kaydet
               </Button>
             </Grid>
@@ -485,20 +564,14 @@ export default function UserPage() {
               />
             </Grid>
             <Grid item xs={12}>
-              <OutlinedInput
-                value={controller.filterName}
-                onChange={handleChangeSearch}
-                placeholder="Nace Kodu ara..."
-                startAdornment={
-                  <InputAdornment position="start">
-                    <Iconify
-                      icon="eva:search-fill"
-                      sx={{ color: 'text.disabled', width: 20, height: 20 }}
-                    />
-                  </InputAdornment>
-                }
-              />
-            </Grid>
+            <Button
+  variant="contained"
+  onClick={handleOpenNaceModal}
+>
+  Nace Kodu Seç
+</Button>
+<span style={{ marginLeft: 10 }}>{isSelected}</span>
+</Grid>
             <Grid item xs={12}>
               <TextField
                 label="Tehlike Sınıfı"
@@ -509,7 +582,7 @@ export default function UserPage() {
               />
             </Grid>
             <Grid item xs={12}>
-              <Button type="submit" variant="contained" color="primary">
+              <Button onClick={handleLocationUpdate} type="submit" variant="contained" color="primary">
                 Kaydet
               </Button>
             </Grid>
@@ -533,6 +606,7 @@ export default function UserPage() {
       </Grid>
       <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
         <Button
+          onClick={handleLocationDelete}
           type="submit"
           variant="contained"
           color="primary"
@@ -596,7 +670,7 @@ export default function UserPage() {
                       tabIndex={-1} 
                       role="checkbox" 
                       selected={isSelected} 
-                      onClick={() => handleRowClick(passenger.nace_code, passenger.hazard_class)}
+                      onClick={() => handleRowClick(passenger.nace_code, passenger.hazard_class, passenger.nace_code_id)}
                       style={rowStyles} // Change background color based on isSelected
                     >
                       <TableCell>{passenger.nace_code}</TableCell>

@@ -47,9 +47,9 @@ export function applyFilter({ inputData, comparator, filterName }) {
   inputData = stabilizedThis.map((el) => el[0]);
 
   if (filterName) {
-    inputData = inputData.filter(
-      (firma) => firma.company_title.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
-    );
+   // inputData = inputData.filter(
+    //  (firma) => firma.company_title.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
+   // );
   }
 
   return inputData;

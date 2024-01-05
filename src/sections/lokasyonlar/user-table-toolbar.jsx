@@ -35,7 +35,7 @@ export default function UserTableToolbar({ numSelected, filterName, onFilterName
         >
           <MenuItem value="">Lokasyon Seçiniz</MenuItem>
           {firmaListesi.map((firm, key) => (
-            <MenuItem key={key} value={firm.parent_company_id}>
+            <MenuItem key={key} value={firm.id}>
               {firm.company_title}
             </MenuItem>
           ))}

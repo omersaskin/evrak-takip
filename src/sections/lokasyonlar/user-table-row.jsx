@@ -23,6 +23,12 @@ export default function UserTableRow({
   handleClick,
   handleOpenEdit,
   handleOpenDelete,
+  passengersList,
+  naceCodeId,
+  filterName,
+  firmaListesi,
+  firm_sgk,
+  company_title
 }) {
   const [open, setOpen] = useState(null);
 
@@ -33,7 +39,7 @@ export default function UserTableRow({
   const handleCloseMenu = () => {
     setOpen(null);
   };
-
+  console.log(filterName, firmaListesi)
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
@@ -43,18 +49,48 @@ export default function UserTableRow({
           <Stack direction="row" alignItems="center" spacing={2}>
            
             <Typography variant="subtitle2" noWrap>
-              {nace_code}
+              {company_title}
             </Typography>
           </Stack>
         </Stack>
         </TableCell>
 
-        <TableCell>{business}</TableCell>
-        <TableCell>{hazard_class}</TableCell>
+        <TableCell>{firm_sgk}</TableCell>
+        <TableCell>
+        {
+              firmaListesi.map(e => (
+                e.id === filterName
+                ?
+                  passengersList.map(k => (
+                    k.id === e.nace_code_id
+                    ?
+                      k.nace_code
+                    :
+                    null
+                  ))
+                :
+                  null
+              ))
+            }
+        </TableCell>
         <TableCell>
           
         <Typography variant="body2" noWrap style={{ backgroundColor: 'orange', color: '#fff', padding: 5, borderRadius: 10 }}>
-            İkinci satır metni
+            {
+              firmaListesi.map(e => (
+                e.id === filterName
+                ?
+                  passengersList.map(k => (
+                    k.id === e.nace_code_id
+                    ?
+                      k.hazard_class
+                    :
+                    null
+                  ))
+                :
+                  null
+              ))
+            }
           </Typography>  
         </TableCell>
 
@@ -117,10 +153,16 @@ export default function UserTableRow({
 
 UserTableRow.propTypes = {
   nace_code: PropTypes.any,
+  company_title: PropTypes.any,
   business: PropTypes.any,
   handleClick: PropTypes.func,
   hazard_class: PropTypes.any,
   selected: PropTypes.any,
+  naceCodeId: PropTypes.any,
+  filterName: PropTypes.any,
+  firm_sgk: PropTypes.any,
+  firmaListesi: PropTypes.any,
+  passengersList: PropTypes.any,
   handleOpenEdit: PropTypes.func,
   handleOpenDelete: PropTypes.func,
 };

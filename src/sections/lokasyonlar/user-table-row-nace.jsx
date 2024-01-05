@@ -35,7 +35,7 @@ export default function UserTableRow({
   const rowStyles = {
     cursor: 'pointer',
     '&:hover': {
-      backgroundColor: '#f5f5f5', // Change the color to your desired hover color
+      backgroundColor: '#F4F6F8', // Change the color to your desired hover color
     },
   };
 
