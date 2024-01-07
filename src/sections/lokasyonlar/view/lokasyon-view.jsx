@@ -44,6 +44,7 @@ const style = {
 
 
 export default function UserPage() {
+  const [selectedRow, setSelectedRow] = useState(null);
   const [filterName, setFilterName] = useState('');
   const [naceCodeId, naceCodeIdGuncelle] = useState('');
   const [firmaListesiTablo, firmaListesiTabloGuncelle] = useState([]);
@@ -114,8 +115,8 @@ export default function UserPage() {
   };
 
   const [firmaListesi, firmaListesiGuncelle] = useState([]);
-
-  
+  const [ilListesi, ilListesiGuncelle] = useState([]);
+  const [ilceListesi, ilceListesiGuncelle] = useState([]);
 
   const [textInput1Edit, setTextInput1Edit] = useState('');
   const [textInput2Edit, setTextInput2Edit] = useState('');
@@ -123,6 +124,7 @@ export default function UserPage() {
   const [textInput1, setTextInput1] = useState('');
   const [textInput2, setTextInput2] = useState('');
   const [selectValue1, setSelectValue1] = useState('');
+  const [selectValue2, setSelectValue2] = useState('');
 
   const handleTextInput1ChangeEdit = (event) => {
     setTextInput1Edit(event.target.value);
@@ -153,6 +155,10 @@ export default function UserPage() {
 
   const handleSelectChange1 = (event) => {
     setSelectValue1(event.target.value);
+  };
+
+  const handleSelectChange2 = (event) => {
+    setSelectValue2(event.target.value);
   };
 
   const handleSubmit = (event) => {
@@ -235,6 +241,33 @@ export default function UserPage() {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/provinces`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok.');
+        }
+        const jsonData = await response.json();
+        ilListesiGuncelle(jsonData);
+        
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    ilListesi.forEach(element => {
+      if(element.id === selectValue1) {
+        ilceListesiGuncelle(element.district)
+      }
+    });
+  }, [selectValue1, ilListesi]);
+  
   
   useEffect(() => {
     const fetchData = async () => {
@@ -266,8 +299,9 @@ export default function UserPage() {
           parent_company_id: filterName,
           nace_code_id: naceCodeId,
           firm_sgk: textInput2,
-          province_id: 1,
-          district_id: 1
+          province_id: selectValue1,
+          district_id: selectValue2,
+          firm_adres: "adres"
           // Add other necessary fields as needed
         }),
       });
@@ -282,16 +316,18 @@ export default function UserPage() {
       // Handle error, show a message, etc.
     }
   };
-
+console.log(adres, naceCodeId)
   const handleLocationUpdate = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/companies/${filterName}`, {
+      const response = await fetch(`http://localhost:8000/api/companies/${selectedRow}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           company_title: textInput1Edit, // Yeni firma tam ünvanı
+          firm_sgk: textInput2Edit, // Yeni firma tam ünvanı
+          nace_code_id: naceCodeId, // Yeni firma tam ünvanı
           // Diğer gerekli alanları buraya ekleyin
         }),
       });
@@ -345,10 +381,11 @@ export default function UserPage() {
 
   const notFound = !dataFiltered.length && !!filterName;
 
-  const handleRowClick = (nace_code, hazard_class, nace_code_id) => {
+  const handleRowClick = (nace_code, hazard_class, id) => {
     setIsSelected(`${nace_code} - ${hazard_class}`);
     setOpenNaceModal(false);
-    naceCodeIdGuncelle(nace_code_id);
+    naceCodeIdGuncelle(id);
+    console.log(hazard_class);
   };
 
 
@@ -357,6 +394,12 @@ export default function UserPage() {
     '&:hover': {
       backgroundColor: '#F4F6F8', // Change the color to your desired hover color
     },
+  };
+
+  const hazardColors = {
+    Tehlikeli: "orange",
+    'Az Tehlikeli': "green",
+    default: "red"
   };
 
   return (
@@ -414,14 +457,17 @@ export default function UserPage() {
                   .map((row) => (
                     <UserTableRow
                       key={row.id}
+                      id={row.id}
+                      setSelectedRow={setSelectedRow}
                       passengersList={passengersList}
                       handleOpenEdit={handleOpenEdit}
                       handleOpenDelete={handleOpenDelete}
                       naceCodeId={naceCodeId}
                       filterName={filterName}
-                      firmaListesi={firmaListesi}
+                      firmaListesi={firmaListesiTablo}
                       firm_sgk={row.firm_sgk}
                       company_title={row.company_title}
+                      hazard_class={row.hazard_class}
                     />
                   ))}
 
@@ -494,8 +540,11 @@ export default function UserPage() {
                   onChange={handleSelectChange1}
                   variant="outlined"
                 >
-                  <MenuItem value="0">Tüzel</MenuItem>
-                  <MenuItem value="1">Firma</MenuItem>
+                  {
+                    ilListesi.map(i => (
+                      <MenuItem value={i.id}>{i.title}</MenuItem>
+                    ))
+                  }
                 </Select>
               </FormControl>
             </Grid>
@@ -503,13 +552,16 @@ export default function UserPage() {
               <FormControl fullWidth>
                 <InputLabel>İlçe Seçiniz</InputLabel>
                 <Select
-                  value={selectValue1}
+                  value={selectValue2}
                   label="Firma Tipi"
-                  onChange={handleSelectChange1}
+                  onChange={handleSelectChange2}
                   variant="outlined"
                 >
-                  <MenuItem value="0">Tüzel</MenuItem>
-                  <MenuItem value="1">Firma</MenuItem>
+                  {
+                    ilceListesi.map(i => (
+                      <MenuItem value={i.id}>{i.name}</MenuItem>
+                    ))
+                  }
                 </Select>
               </FormControl>
             </Grid>
@@ -522,6 +574,8 @@ export default function UserPage() {
                 onChange={handleAdresChange}
                 fullWidth
                 margin="normal"
+                multiline
+                rows={3}
               />
               </FormControl>
             </Grid>
@@ -572,15 +626,6 @@ export default function UserPage() {
 </Button>
 <span style={{ marginLeft: 10 }}>{isSelected}</span>
 </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Tehlike Sınıfı"
-                variant="outlined"
-                value={textInput2Edit}
-                onChange={handleTextInput2ChangeEdit}
-                fullWidth
-              />
-            </Grid>
             <Grid item xs={12}>
               <Button onClick={handleLocationUpdate} type="submit" variant="contained" color="primary">
                 Kaydet
@@ -666,21 +711,21 @@ export default function UserPage() {
               {
                 passengersList.map((passenger, key) => (
                   <TableRow 
-                      hover 
-                      tabIndex={-1} 
-                      role="checkbox" 
-                      selected={isSelected} 
-                      onClick={() => handleRowClick(passenger.nace_code, passenger.hazard_class, passenger.nace_code_id)}
-                      style={rowStyles} // Change background color based on isSelected
-                    >
-                      <TableCell>{passenger.nace_code}</TableCell>
-                      <TableCell>{passenger.business}</TableCell>
-                      <TableCell>
-                        <Typography variant="body2" noWrap style={{ backgroundColor: 'orange', color: '#fff', padding: 5, borderRadius: 10 }}>
-                          {passenger.hazard_class}
-                        </Typography>  
-                      </TableCell>
-                    </TableRow>
+                    hover 
+                    tabIndex={-1} 
+                    role="checkbox" 
+                    selected={isSelected} 
+                    onClick={() => handleRowClick(passenger.nace_code, passenger.hazard_class, passenger.id)}
+                    style={rowStyles} // Change background color based on isSelected
+                  >
+                    <TableCell>{passenger.nace_code}</TableCell>
+                    <TableCell>{passenger.business}</TableCell>
+                    <TableCell>
+                      <Typography variant="body2" noWrap style={{ backgroundColor: hazardColors[passenger.hazard_class] || hazardColors.default, color: '#fff', padding: 5, borderRadius: 10 }}>
+                        {passenger.hazard_class}
+                      </Typography>  
+                    </TableCell>
+                  </TableRow>
                 ))
               }
 

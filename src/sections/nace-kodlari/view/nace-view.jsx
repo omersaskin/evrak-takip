@@ -184,7 +184,11 @@ export default function UserPage() {
     });
   };
 
-  console.log(controller.filterName)
+  const hazardColors = {
+    Tehlikeli: "orange",
+    'Az Tehlikeli': "green",
+    default: "red"
+  };
 
   return (
     <Container>
@@ -231,7 +235,7 @@ export default function UserPage() {
                 <TableCell>{passenger.nace_code}</TableCell>
                 <TableCell>{passenger.business}</TableCell>
                 <TableCell>
-                  <Typography variant="body2" noWrap style={{ backgroundColor: 'orange', color: '#fff', padding: 5, borderRadius: 10 }}>
+                  <Typography variant="body2" noWrap style={{ backgroundColor: hazardColors[passenger.hazard_class] || hazardColors.default, color: '#fff', padding: 5, borderRadius: 10 }}>
                     {passenger.hazard_class}
                   </Typography>  
                 </TableCell>

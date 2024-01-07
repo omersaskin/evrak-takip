@@ -28,18 +28,27 @@ export default function UserTableRow({
   filterName,
   firmaListesi,
   firm_sgk,
-  company_title
+  company_title,
+  id,
+  setSelectedRow,
 }) {
   const [open, setOpen] = useState(null);
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
+    setSelectedRow(id); 
   };
 
   const handleCloseMenu = () => {
     setOpen(null);
   };
-  console.log(filterName, firmaListesi)
+  
+  const hazardColors = {
+    Tehlikeli: "orange",
+    'Az Tehlikeli': "green",
+    default: "red"
+  };
+
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
@@ -58,38 +67,14 @@ export default function UserTableRow({
         <TableCell>{firm_sgk}</TableCell>
         <TableCell>
         {
-              firmaListesi.map(e => (
-                e.id === filterName
-                ?
-                  passengersList.map(k => (
-                    k.id === e.nace_code_id
-                    ?
-                      k.nace_code
-                    :
-                    null
-                  ))
-                :
-                  null
-              ))
+              
             }
         </TableCell>
         <TableCell>
           
-        <Typography variant="body2" noWrap style={{ backgroundColor: 'orange', color: '#fff', padding: 5, borderRadius: 10 }}>
+        <Typography variant="body2" noWrap style={{ backgroundColor: hazardColors[hazard_class] || hazardColors.default, color: '#fff', padding: 5, borderRadius: 10 }}>
             {
-              firmaListesi.map(e => (
-                e.id === filterName
-                ?
-                  passengersList.map(k => (
-                    k.id === e.nace_code_id
-                    ?
-                      k.hazard_class
-                    :
-                    null
-                  ))
-                :
-                  null
-              ))
+              hazard_class
             }
           </Typography>  
         </TableCell>
@@ -165,4 +150,6 @@ UserTableRow.propTypes = {
   passengersList: PropTypes.any,
   handleOpenEdit: PropTypes.func,
   handleOpenDelete: PropTypes.func,
+  id: PropTypes.any,
+  setSelectedRow: PropTypes.func,
 };
