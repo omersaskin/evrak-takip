@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux'
 import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
@@ -22,6 +24,7 @@ import UserTableRow from '../user-table-row';
 import UserTableHead from '../user-table-head';
 import TableEmptyRows from '../table-empty-rows';
 import UserTableToolbar from '../user-table-toolbar';
+import {getUsers} from '../../../actions/usersActions';
 import { emptyRows, applyFilter, getComparator } from '../utils';
 
 const style = {
@@ -50,22 +53,16 @@ const VisuallyHiddenInput = styled('input')({
 // ----------------------------------------------------------------------
 
 
-export default function UserPage() {
+function UserPage({ users, getUsers: fetchUsers }) {
   const [selectedRow, setSelectedRow] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0]; // Get the uploaded file
-    const reader = new FileReader();
   
-    reader.onload = (e) => {
-      setUploadedImage(e.target.result);
-    };
-  
-    // Read the uploaded file as a data URL
-    reader.readAsDataURL(file);
-  };
-  
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  console.log(users);
 
 
   const [firmaListesi, firmaListesiGuncelle] = useState([]);
@@ -95,24 +92,37 @@ export default function UserPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          company_title: textInput1, // Assuming textInput1 holds the full company name
-          short_name: textInput2, // Assuming textInput2 holds the short company name
-          firm_type_id: selectValue1, // Assuming selectValue1 holds the company type
+          company_title: textInput1,
+          short_name: textInput2,
+          firm_type_id: selectValue1,
           parent_company_id: 0
           // Add other necessary fields as needed
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to add company');
       }
       
-      handleClose(); // Close the modal after adding the company
+      // Close the modal after adding the company
+      handleClose();
+
+      setTextInput1('');
+      setTextInput2('');
+      setSelectValue1('');
+  
+      // Fetch the updated list of companies
+      const updatedResponse = await fetch('http://localhost:8000/api/get_main_companies');
+      const updatedJsonData = await updatedResponse.json();
+  
+      // Update the local state with the updated list of companies
+      firmaListesiGuncelle(updatedJsonData.original);
     } catch (error) {
       console.error('Error adding company:', error);
       // Handle error, show a message, etc.
     }
   };
+  
 
   const handleCompanyUpdate = async () => {
     try {
@@ -159,7 +169,47 @@ export default function UserPage() {
     }
   };
 
-  console.log(firmaListesi)
+  const handleLogoAdd = async (event) => {
+    const file = event.target.files[0]; // Yüklenen dosyayı al
+    const reader = new FileReader();
+  
+    reader.onload = (e) => {
+      setUploadedImage(e.target.result);
+    };
+  
+    // Yüklenen dosyayı bir veri URL'si olarak oku
+    reader.readAsDataURL(file);
+
+    // Dosya adını ve uzantısını alma
+    const fileName = file.name; // Dosya adını al
+    const fileExtension = fileName.split('.').pop(); // Uzantıyı al
+
+
+    try {
+      const response = await fetch('http://localhost:8000/api/upload-files', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          path: `Logos/${fileName}`, // Assuming textInput1 holds the full company name
+          ext: fileExtension,
+          name: fileName,
+          // Add other necessary fields as needed
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add company');
+      }
+      
+      handleClose(); // Close the modal after adding the company
+    } catch (error) {
+      console.error('Error adding company:', error);
+      // Handle error, show a message, etc.
+    }
+  };
+  
   const [textInput1Edit, setTextInput1Edit] = useState('');
   const [textInput2Edit, setTextInput2Edit] = useState('');
   const [selectValue1Edit, setSelectValue1Edit] = useState('');
@@ -183,7 +233,7 @@ export default function UserPage() {
   const handleSubmitEdit = (event) => {
     event.preventDefault();
     // Burada form verilerini istediğiniz şekilde işleyebilirsiniz
-    console.log('TextInput 1:', textInput1Edit);
+    console.log('TextInput 1:', );
     console.log('TextInput 2:', textInput2Edit);
     console.log('SelectBox 1:', selectValue1Edit);
   };
@@ -211,8 +261,6 @@ export default function UserPage() {
     console.log('TextInput 1:', textInput1);
     console.log('TextInput 2:', textInput2);
     console.log('SelectBox 1:', selectValue1);
-
-    
   };
 
   const [open, setOpen] = useState(false);
@@ -376,7 +424,7 @@ console.log(selectedRow);
           <Grid item xs={12}>
           <Button component="label" variant="contained">
             Fotoğraf Yükle
-            <VisuallyHiddenInput type="file" onChange={handleImageUpload} />
+            <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
           </Button>
         </Grid>
         <Grid item xs={12}>
@@ -523,3 +571,12 @@ console.log(selectedRow);
     </Container>
   );
 }
+
+UserPage.propTypes = {
+  users: PropTypes.array.isRequired, // Assuming users is an array
+  getUsers: PropTypes.func.isRequired,
+};
+
+const mapStateToProps = state => ({ users: state.users });
+
+export default connect(mapStateToProps, { getUsers })(UserPage);
