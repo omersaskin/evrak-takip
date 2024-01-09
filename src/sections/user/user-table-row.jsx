@@ -23,7 +23,11 @@ export default function UserTableRow({
   handleOpenEdit,
   handleOpenDelete,
   id,
-  setSelectedRow
+  setSelectedRow,
+  setTextInput1Edit,
+  setTextInput2Edit,
+  setSelectValue1Edit,
+  firm_type_id
 }) {
    // State to store the selected row number
 
@@ -31,7 +35,10 @@ export default function UserTableRow({
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
-    setSelectedRow(id); 
+    setSelectedRow(id);
+    setTextInput1Edit(company_title);
+    setTextInput2Edit(short_name);
+    setSelectValue1Edit(firm_type_id);
   };
 
   const handleCloseMenu = () => {
@@ -122,8 +129,12 @@ UserTableRow.propTypes = {
   handleClick: PropTypes.func,
   short_name: PropTypes.any,
   id: PropTypes.any,
+  firm_type_id: PropTypes.any,
   selected: PropTypes.any,
   handleOpenEdit: PropTypes.func,
   handleOpenDelete: PropTypes.func,
   setSelectedRow: PropTypes.func,
+  setTextInput1Edit: PropTypes.func,
+  setTextInput2Edit: PropTypes.func,
+  setSelectValue1Edit: PropTypes.func,
 };

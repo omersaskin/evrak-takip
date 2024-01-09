@@ -384,8 +384,12 @@ console.log(selectedRow);
                       company_title={row.company_title}
                       short_name={row.short_name}
                       isVerified={row.isVerified}
+                      firm_type_id={row.firm_type_id}
                       handleOpenEdit={handleOpenEdit}
                       handleOpenDelete={handleOpenDelete}
+                      setTextInput1Edit={setTextInput1Edit}
+                      setTextInput2Edit={setTextInput2Edit}
+                      setSelectValue1Edit={setSelectValue1Edit}
                     />
                   ))}
 
