@@ -51,7 +51,7 @@ export default function UserPage() {
 
   useEffect(() => {
     const getData = async () => {
-      const url = `http://localhost:8000/api/nace_codes?per_page=${controller.rowsPerPage}&page=${controller.page+1}&search=${controller.filterName}`
+      const url = `${import.meta.env.VITE_API_URL}/nace_codes?per_page=${controller.rowsPerPage}&page=${controller.page+1}&search=${controller.filterName}`
       try {
         const response = await fetch(url);
         if (response.statusText === 'OK') {

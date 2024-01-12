@@ -60,7 +60,7 @@ export default function UserPage() {
   
   useEffect(() => {
     const getData = async () => {
-      const url = `http://localhost:8000/api/nace_codes?per_page=${controller.rowsPerPage}&page=${controller.page+1}&search=${controller.filterName}`
+      const url = `${import.meta.env.VITE_API_URL}/nace_codes?per_page=${controller.rowsPerPage}&page=${controller.page+1}&search=${controller.filterName}`
       try {
         const response = await fetch(url);
         if (response.statusText === 'OK') {
@@ -228,7 +228,7 @@ export default function UserPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/get_main_companies`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/get_main_companies`);
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -245,7 +245,7 @@ export default function UserPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/provinces`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/provinces`);
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -272,7 +272,7 @@ export default function UserPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/companies?parent_company_id=${filterName}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/companies?parent_company_id=${filterName}`);
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -288,7 +288,7 @@ export default function UserPage() {
   
   const handleLocationAdd = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/companies', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/companies`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -319,7 +319,7 @@ export default function UserPage() {
 console.log(adres, naceCodeId)
   const handleLocationUpdate = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/companies/${selectedRow}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/companies/${selectedRow}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -345,7 +345,7 @@ console.log(adres, naceCodeId)
   
   const handleLocationDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/companies/${filterName}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/companies/${filterName}`, {
         method: 'DELETE',
       });
   

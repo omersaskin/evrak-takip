@@ -1,31 +1,27 @@
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux'
+import { connect } from 'react-redux'
 import { useState, useEffect } from 'react';
+import DataTable from 'react-data-table-component';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import Popover from '@mui/material/Popover';
 import { styled } from '@mui/material/styles';
 import Container from '@mui/material/Container';
-import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
-import TableContainer from '@mui/material/TableContainer';
+import IconButton from '@mui/material/IconButton';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputAdornment from '@mui/material/InputAdornment';
 import TablePagination from '@mui/material/TablePagination';
+import TablePaginationActions from '@mui/material/TablePagination/TablePaginationActions';
 import { Grid, Select, MenuItem, TextField, InputLabel, FormControl } from '@mui/material';
 
 import Iconify from 'src/components/iconify';
-import Scrollbar from 'src/components/scrollbar';
 
-import TableNoData from '../table-no-data';
-import UserTableRow from '../user-table-row';
-import UserTableHead from '../user-table-head';
-import TableEmptyRows from '../table-empty-rows';
-import UserTableToolbar from '../user-table-toolbar';
-import {getUsers} from '../../../actions/usersActions';
-import { emptyRows, applyFilter, getComparator } from '../utils';
+import { firmAddApi, firmListCount, firmUpdateApi, firmDeleteApi, firmSearchApi, firmLogoUpload } from '../../../actions/firmActions';
 
 const style = {
   width: '90%', maxWidth: 1000, mx: 'auto', p: 2,
@@ -50,371 +46,275 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-// ----------------------------------------------------------------------
-
-
-function UserPage({ users, getUsers: fetchUsers }) {
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [uploadedImage, setUploadedImage] = useState(null);
-
-  
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
-  console.log(users);
-
-
-  const [firmaListesi, firmaListesiGuncelle] = useState([]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/api/get_main_companies');
-        if (!response.ok) {
-          throw new Error('Network response was not ok.');
-        }
-        const jsonData = await response.json();
-        firmaListesiGuncelle(jsonData.original);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleCompanyAdd = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/companies', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          company_title: textInput1,
-          short_name: textInput2,
-          firm_type_id: selectValue1,
-          parent_company_id: 0
-          // Add other necessary fields as needed
-        }),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to add company');
-      }
-      
-      // Close the modal after adding the company
-      handleClose();
-
-      setTextInput1('');
-      setTextInput2('');
-      setSelectValue1('');
-  
-      // Fetch the updated list of companies
-      const updatedResponse = await fetch('http://localhost:8000/api/get_main_companies');
-      const updatedJsonData = await updatedResponse.json();
-  
-      // Update the local state with the updated list of companies
-      firmaListesiGuncelle(updatedJsonData.original);
-    } catch (error) {
-      console.error('Error adding company:', error);
-      // Handle error, show a message, etc.
-    }
-  };
-  
-
-  const handleCompanyUpdate = async () => {
-    try {
-      const response = await fetch(`http://localhost:8000/api/companies/${selectedRow}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          company_title: textInput1Edit, // Yeni firma tam ünvanı
-          short_name: textInput2Edit, // Yeni firma kısa adı
-          firm_type_id: selectValue1Edit, // Yeni firma tipi
-          // Diğer gerekli alanları buraya ekleyin
-        }),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to update company');
-      }
-      
-      handleCloseEdit(); // Güncelleme işleminden sonra modalı kapatın
-    } catch (error) {
-      console.error('Error updating company:', error);
-      // Hata yönetimi yapabilir, bir mesaj gösterebilirsiniz
-    }
-  };
-  
-  const handleCompanyDelete = async () => {
-    try {
-      const response = await fetch(`http://localhost:8000/api/companies/${selectedRow}`, {
-        method: 'DELETE',
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to delete company');
-      }
-  
-      handleCloseDelete(); // Close the modal after successful deletion
-      // Potentially, you might want to update the list of companies after deletion
-      // You could refetch the data or remove the deleted item from the local state
-    } catch (error) {
-      console.error('Error deleting company:', error);
-      // Handle error, show a message, etc.
-    }
-  };
-
-  const handleLogoAdd = async (event) => {
-    const file = event.target.files[0]; // Yüklenen dosyayı al
-    const reader = new FileReader();
-  
-    reader.onload = (e) => {
-      setUploadedImage(e.target.result);
-    };
-  
-    // Yüklenen dosyayı bir veri URL'si olarak oku
-    reader.readAsDataURL(file);
-
-    // Dosya adını ve uzantısını alma
-    const fileName = file.name; // Dosya adını al
-    const fileExtension = fileName.split('.').pop(); // Uzantıyı al
-
-
-    try {
-      const response = await fetch('http://localhost:8000/api/upload-files', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          path: `Logos/${fileName}`, // Assuming textInput1 holds the full company name
-          ext: fileExtension,
-          name: fileName,
-          // Add other necessary fields as needed
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add company');
-      }
-      
-      handleClose(); // Close the modal after adding the company
-    } catch (error) {
-      console.error('Error adding company:', error);
-      // Handle error, show a message, etc.
-    }
-  };
-  
-  const [textInput1Edit, setTextInput1Edit] = useState('');
-  const [textInput2Edit, setTextInput2Edit] = useState('');
-  const [selectValue1Edit, setSelectValue1Edit] = useState('');
-
-  const [textInput1, setTextInput1] = useState('');
-  const [textInput2, setTextInput2] = useState('');
-  const [selectValue1, setSelectValue1] = useState('');
-
-  const handleTextInput1ChangeEdit = (event) => {
-    setTextInput1Edit(event.target.value);
-  };
-
-  const handleTextInput2ChangeEdit = (event) => {
-    setTextInput2Edit(event.target.value);
-  };
-
-  const handleSelectChange1Edit = (event) => {
-    setSelectValue1Edit(event.target.value);
-  };
-
-  const handleSubmitEdit = (event) => {
-    event.preventDefault();
-    // Burada form verilerini istediğiniz şekilde işleyebilirsiniz
-    console.log('TextInput 1:', );
-    console.log('TextInput 2:', textInput2Edit);
-    console.log('SelectBox 1:', selectValue1Edit);
-  };
-
-  const [openEdit, setOpenEdit] = useState(false);
-  const handleOpenEdit = () => setOpenEdit(true);
-  const handleCloseEdit = () => setOpenEdit(false);
-
-  const handleTextInput1Change = (event) => {
-    setTextInput1(event.target.value);
-  };
-
-  const handleTextInput2Change = (event) => {
-    setTextInput2(event.target.value);
-  };
-
-  const handleSelectChange1 = (event) => {
-    setSelectValue1(event.target.value);
-  };
-
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Burada form verilerini istediğiniz şekilde işleyebilirsiniz
-    console.log('TextInput 1:', textInput1);
-    console.log('TextInput 2:', textInput2);
-    console.log('SelectBox 1:', selectValue1);
-  };
+function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmListApiAs, firmAddApi: firmAddApiAs, firmUpdateApi: firmUpdateApiAs, firmDeleteApi: firmDeleteApiAs, firmSearchApi: firmSearchApiAs, firmLogoUpload: firmLogoUploadAs }) {
+  const [controller, setController] = useState({
+    page: 0,
+    rowsPerPage: 5,
+    search: ''
+  });
+  const [firmName, firmNameUpdate] = useState('');
+  const [firmType, firmTypeUpdate] = useState('');
+  const [firmShortName, firmShortNameUpdate] = useState('');
+  const [firmNameEdit, firmNameUpdateEdit] = useState('');
+  const [firmShortNameEdit, firmShortNameUpdateEdit] = useState('');
+  const [firmTypeEdit, firmTypeUpdateEdit] = useState('');
 
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const [openEdit, setOpenEdit] = useState(false);
+  const handleOpenEdit = () => setOpenEdit(true);
+  const handleCloseEdit = () => setOpenEdit(false);
+
   const [openDelete, setOpenDelete] = useState(false);
   const handleOpenDelete = () => setOpenDelete(true);
   const handleCloseDelete = () => setOpenDelete(false);
 
-  const [page, setPage] = useState(0);
+  const [openMenu, setOpenMenu] = useState(null);
+  const handleOpenMenu = (event, id, company_title, short_name, firm_type_id) => {
+    setOpenMenu(event.currentTarget);
+    
+    selectedRowUpdate(id);
+    firmNameUpdateEdit(company_title);
+    firmShortNameUpdateEdit(short_name);
+    firmTypeUpdateEdit(firm_type_id);
+  };
+  const handleCloseMenu = () => {
+    setOpenMenu(null);
+  };
+  
+  const [selectedRow, selectedRowUpdate] = useState('');
+  const [photo, photoUpdate] = useState('');
 
-  const [order, setOrder] = useState('asc');
+  const handleFirmAdd = async (event) => {
+    event.preventDefault();
 
-  const [orderBy, setOrderBy] = useState('title');
+    await firmAddApiAs(firmName, firmShortName, firmType);
 
-  const [filterName, setFilterName] = useState('');
+    await firmSearchApiAs(controller.search, controller.rowsPerPage, controller.page);
 
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-console.log(selectedRow);
-  const handleSort = (event, id) => {
-    const isAsc = orderBy === id && order === 'asc';
-    if (id !== '') {
-      setOrder(isAsc ? 'desc' : 'asc');
-      setOrderBy(id);
-    }
+    firmNameUpdate('');
+    firmShortNameUpdate('');
+    firmTypeUpdate('');
+
+    handleClose();
+  };
+
+  const handleFirmUpdate = async (event) => {
+    event.preventDefault();
+
+    await firmUpdateApiAs(firmNameEdit, firmShortNameEdit, firmTypeEdit, selectedRow);
+
+    await firmSearchApiAs(controller.search, controller.rowsPerPage);
+    
+    handleCloseMenu();
+    handleCloseEdit();
+  };
+
+  const handleFirmDelete = async (event) => {
+    event.preventDefault();
+
+    await firmDeleteApiAs(selectedRow);
+
+    await firmSearchApiAs(controller.search, controller.rowsPerPage);
+  
+    handleCloseDelete();
+  };
+
+  const handleLogoAdd = async (event) => {
+    const file = event.target.files[0]; 
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      photoUpdate(e.target.result);
+    };
+
+    reader.readAsDataURL(file);
+
+    const fileName = file.name; 
+    const fileExtension = fileName.split('.').pop();
+    const path = `Logos/${fileName}`;
+
+    await firmLogoUploadAs(path, fileExtension, fileName);
+  };
+
+  useEffect(() => {
+    firmSearchApiAs(controller.search, controller.rowsPerPage, controller.page);
+    firmListCountAs();
+  }, [controller.search, controller, controller.rowsPerPage, firmSearchApiAs, firmListCountAs]);
+
+  const columns = [
+    {
+      name: 'Firma Adı',
+      selector: row => row.company_title,
+    },
+    {
+      name: '',
+      selector: row => (
+        <div style={{ textAlign: 'right' }}>
+          <IconButton onClick={(event) => handleOpenMenu(event, row.id, row.company_title, row.short_name, row.firm_type_id)}>
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
+        </div>
+      ),
+    },
+  ];
+
+  const handleFirmName = (event) => {
+    firmNameUpdate(event.target.value);
+  };
+
+  const handleFirmNameEdit = (event) => {
+    firmNameUpdateEdit(event.target.value);
+  };
+
+  const handleFirmShortName = (event) => {
+    firmShortNameUpdate(event.target.value);
+  };
+
+  const handleFirmShortNameEdit = (event) => {
+    firmShortNameUpdateEdit(event.target.value);
+  };
+
+  const handleFirmType = (event) => {
+    firmTypeUpdate(event.target.value);
+  };
+
+  const handleFirmTypeEdit = (event) => {
+    firmTypeUpdateEdit(event.target.value);
   };
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    setController({
+      ...controller,
+      page: newPage
+    });
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setPage(0);
-    setRowsPerPage(parseInt(event.target.value, 10));
+    setController({
+      ...controller,
+      rowsPerPage: parseInt(event.target.value, 10),
+      page: 0
+    });
   };
 
-  const handleFilterByName = (event) => {
-    setPage(0);
-    setFilterName(event.target.value);
+  const handleChangeSearch = (event) => {
+    setController({
+      ...controller,
+      search: event.target.value,
+      page: 0
+    });
   };
+  
+ 
 
-  const dataFiltered = applyFilter({
-    inputData: firmaListesi,
-    comparator: getComparator(order, orderBy),
-    filterName,
-  });
-
-  const notFound = !dataFiltered.length && !!filterName;
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`http://localhost:8000/api/companies?search=${filterName}&per_page=${rowsPerPage}&parent_company_id=0`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok.');
-        }
-        const jsonData = await response.json();
-        firmaListesiGuncelle(jsonData.original.data);
-        console.log(jsonData)
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  }, [filterName, rowsPerPage])
+  
 
   return (
     <Container>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <Typography variant="h4">Firma Listesi</Typography>
 
-   
+
       </Stack>
 
       <Card>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-  <div style={{ flex: '1' }}>
-    <UserTableToolbar
-      filterName={filterName}
-      onFilterName={handleFilterByName}
-    />
-  </div>
 
-  <div style={{ marginLeft: 'auto', marginRight: '20px' }}>
-    <Button
-     
-      onClick={handleOpen}
-      variant="contained"
-      color="inherit"
-      startIcon={<Iconify icon="eva:plus-fill" />}
-    >
-      Firma Ekle
-    </Button>
-  </div>
-</div>
-
-        <Scrollbar>
-        <div style={{ maxHeight: '400px', overflowY: 'scroll' }}>
-          <TableContainer sx={{ overflow: 'unset' }}>
-            <Table sx={{ minWidth: 800 }}>
-              <UserTableHead
-                order={order}
-                orderBy={orderBy}
-                rowCount={firmaListesi.length}
-                onRequestSort={handleSort}
-                headLabel={[
-                  { id: 'company', label: 'Firma' },
-                  { id: '' },
-                ]}
-              />
-              <TableBody>
-                {dataFiltered
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => (
-                    <UserTableRow
-                      key={row.id}
-                      id={row.id}
-                      setSelectedRow={setSelectedRow}
-                      company_title={row.company_title}
-                      short_name={row.short_name}
-                      isVerified={row.isVerified}
-                      firm_type_id={row.firm_type_id}
-                      handleOpenEdit={handleOpenEdit}
-                      handleOpenDelete={handleOpenDelete}
-                      setTextInput1Edit={setTextInput1Edit}
-                      setTextInput2Edit={setTextInput2Edit}
-                      setSelectValue1Edit={setSelectValue1Edit}
-                    />
-                  ))}
-
-                <TableEmptyRows
-                  height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, firmaListesi.length)}
-                />
-
-                {notFound && <TableNoData query={filterName} />}
-              </TableBody>
-            </Table>
-          </TableContainer>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20 }}>
+          <div style={{ flex: '1' }}>
+            <OutlinedInput
+              value={controller.search}
+              onChange={handleChangeSearch}
+              placeholder="Firma ara..."
+              sx={{ width: '100%' }} // Set the width to 100%
+              startAdornment={
+                <InputAdornment position="start">
+                  <Iconify
+                    icon="eva:search-fill"
+                    sx={{ color: 'text.disabled', width: 20, height: 20 }}
+                  />
+                </InputAdornment>
+              }
+            />
           </div>
-        </Scrollbar>
 
+          <div style={{ marginLeft: 20 }}>
+            <Button
+
+              onClick={handleOpen}
+              variant="contained"
+              color="inherit"
+              startIcon={<Iconify icon="eva:plus-fill" />}
+            >
+              Firma Ekle
+            </Button>
+          </div>
+        </div>
+        <DataTable
+          columns={columns}
+          data={firmList.firmList}
+        />
         <TablePagination
-          page={page}
-          component="div"
-          count={firmaListesi.length}
-          rowsPerPage={rowsPerPage}
-          onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={firmList.firmListCount}
+          rowsPerPage={controller.rowsPerPage}
+          page={controller.page}
+          onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          ActionsComponent={TablePaginationActions}
         />
       </Card>
+
+
+      <Popover
+        open={!!openMenu}
+        anchorEl={openMenu}
+        onClose={handleCloseMenu}
+        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{
+          sx: { width: 140 },
+        }}
+      >
+        <MenuItem onClick={handleOpenEdit} sx={{ width: '100%' }}>
+          <Button
+            disableRipple // Disable the ripple effect on click
+            startIcon={<Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />}
+            fullWidth
+            sx={{
+              '&:hover': {
+                backgroundColor: 'transparent', // Prevent hover color change
+              },
+              '&:active': {
+                backgroundColor: 'transparent', // Prevent click color change
+              },
+            }}
+          >
+            Düzenle
+          </Button>
+        </MenuItem>
+
+        <MenuItem onClick={handleOpenDelete} sx={{ color: 'error.main', width: '100%' }}>
+          <Button
+            disableRipple // Disable the ripple effect on click
+            startIcon={<Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />}
+            fullWidth
+            sx={{
+              '&:hover': {
+                backgroundColor: 'transparent', // Prevent hover color change
+              },
+              '&:active': {
+                backgroundColor: 'transparent', // Prevent click color change
+              },
+            }}
+          >
+            Sil
+          </Button>
+        </MenuItem>
+      </Popover>
 
       <Modal
         open={open}
@@ -422,65 +322,65 @@ console.log(selectedRow);
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-      <Box sx={style}>
-      <form onSubmit={handleSubmit}>
-          <Grid container spacing={2}>
-          <Grid item xs={12}>
-          <Button component="label" variant="contained">
-            Fotoğraf Yükle
-            <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          {uploadedImage && (
-            <img
-              src={uploadedImage}
-              alt="Uploaded"
-              style={{ maxWidth: 100, height: 100, borderRadius: '50%' }}
-            />
-          )}
-        </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Firma Tam Ünvan"
-                variant="outlined"
-                value={textInput1}
-                onChange={handleTextInput1Change}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Firma Kısa Ad"
-                variant="outlined"
-                value={textInput2}
-                onChange={handleTextInput2Change}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Firma Tipi</InputLabel>
-                <Select
-                  value={selectValue1}
-                  label="Firma Tipi"
-                  onChange={handleSelectChange1}
+        <Box sx={style}>
+          <form onSubmit={handleFirmAdd}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Button component="label" variant="contained">
+                  Fotoğraf Yükle
+                  <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
+                </Button>
+              </Grid>
+              <Grid item xs={12}>
+                {photo && (
+                  <img
+                    src={photo}
+                    alt="Uploaded"
+                    style={{ maxWidth: 100, height: 100, borderRadius: '50%' }}
+                  />
+                )}
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Firma Tam Ünvan"
                   variant="outlined"
-                >
-                  <MenuItem value="0">Tüzel</MenuItem>
-                  <MenuItem value="1">Firma</MenuItem>
-                </Select>
-              </FormControl>
+                  value={firmName}
+                  onChange={handleFirmName}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Firma Kısa Ad"
+                  variant="outlined"
+                  value={firmShortName}
+                  onChange={handleFirmShortName}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Firma Tipi</InputLabel>
+                  <Select
+                    value={firmType}
+                    label="Firma Tipi"
+                    onChange={handleFirmType}
+                    variant="outlined"
+                  >
+                    <MenuItem value="0">Tüzel</MenuItem>
+                    <MenuItem value="1">Firma</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <Button type="submit" variant="contained" color="primary">
+                  Kaydet
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <Button type="submit" variant="contained" color="primary" onClick={handleCompanyAdd}>
-                Kaydet
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Box>
-        
+          </form>
+        </Box>
+
       </Modal>
 
       <Modal
@@ -489,98 +389,106 @@ console.log(selectedRow);
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-      <Box sx={style}>
-      <form onSubmit={handleSubmitEdit}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                label="Firma Tam Ünvan"
-                variant="outlined"
-                value={textInput1Edit}
-                onChange={handleTextInput1ChangeEdit}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Firma Kısa Ad"
-                variant="outlined"
-                value={textInput2Edit}
-                onChange={handleTextInput2ChangeEdit}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Firma Tipi</InputLabel>
-                <Select
-                  value={selectValue1Edit}
-                  label="Firma Tipi"
-                  onChange={handleSelectChange1Edit}
+        <Box sx={style}>
+          <form>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Firma Tam Ünvan"
                   variant="outlined"
-                >
-                  <MenuItem value="0">Tüzel</MenuItem>
-                  <MenuItem value="1">Firma</MenuItem>
-                </Select>
-              </FormControl>
+                  value={firmNameEdit}
+                  onChange={handleFirmNameEdit}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Firma Kısa Ad"
+                  variant="outlined"
+                  value={firmShortNameEdit}
+                  onChange={handleFirmShortNameEdit}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Firma Tipi</InputLabel>
+                  <Select
+                    value={firmTypeEdit}
+                    label="Firma Tipi"
+                    onChange={handleFirmTypeEdit}
+                    variant="outlined"
+                  >
+                    <MenuItem value="0">Tüzel</MenuItem>
+                    <MenuItem value="1">Firma</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <Button onClick={handleFirmUpdate} type="submit" variant="contained" color="primary">
+                  Kaydet
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <Button onClick={handleCompanyUpdate} type="submit" variant="contained" color="primary">
-                Kaydet
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Box>
-        
+          </form>
+        </Box>
+
       </Modal>
 
       <Modal
-  open={openDelete}
-  onClose={handleCloseDelete}
-  aria-labelledby="modal-modal-title"
-  aria-describedby="modal-modal-description"
->
-  <Box sx={style}>
-    <Grid container spacing={2}>
-      
-    <Grid item xs={12} style={{ textAlign: 'center' }}>
-        <Typography>Silmek istediğinize emin misiniz?</Typography>
-      </Grid>
-      <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          style={{ width: '100%', textAlign: 'center' }}
-          onClick={handleCompanyDelete}
-        >
-          Evet
-        </Button>
-      </Grid>
-      <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
-        <Button
-          onClick={handleCloseDelete}
-          type="submit"
-          variant="contained"
-          color="primary"
-          style={{ width: '100%', textAlign: 'center' }}
-        >
-          Hayır
-        </Button>
-      </Grid>
-    </Grid>
-  </Box>
-</Modal>
+        open={openDelete}
+        onClose={handleCloseDelete}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Grid container spacing={2}>
 
+            <Grid item xs={12} style={{ textAlign: 'center' }}>
+              <Typography>Silmek istediğinize emin misiniz?</Typography>
+            </Grid>
+            <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                style={{ width: '100%', textAlign: 'center' }}
+                onClick={handleFirmDelete}
+              >
+                Evet
+              </Button>
+            </Grid>
+            <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
+              <Button
+                onClick={handleCloseDelete}
+                type="submit"
+                variant="contained"
+                color="primary"
+                style={{ width: '100%', textAlign: 'center' }}
+              >
+                Hayır
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+      </Modal>
     </Container>
   );
 }
 
 UserPage.propTypes = {
-  users: PropTypes.array.isRequired, // Assuming users is an array
-  getUsers: PropTypes.func.isRequired,
+  firmList: PropTypes.shape({
+    firmList: PropTypes.array.isRequired, // Assuming firmList is an array
+    firmListCount: PropTypes.number.isRequired,
+  }).isRequired,
+  firmListCount: PropTypes.func.isRequired,
+  firmListApi: PropTypes.func.isRequired,
+  firmAddApi: PropTypes.func.isRequired,
+  firmUpdateApi: PropTypes.func.isRequired,
+  firmDeleteApi: PropTypes.func.isRequired,
+  firmSearchApi: PropTypes.func.isRequired,
+  firmLogoUpload: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = state => ({ users: state.users });
+const mapStateToProps = state => ({ firmList: state.firmList, firmListCount: state.firmListCount });
 
-export default connect(mapStateToProps, { getUsers })(UserPage);
+export default connect(mapStateToProps, { firmListCount, firmAddApi, firmUpdateApi, firmDeleteApi, firmSearchApi, firmLogoUpload })(UserPage);
