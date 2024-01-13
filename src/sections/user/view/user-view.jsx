@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux'
 import { useState, useEffect } from 'react';
-import DataTable from 'react-data-table-component';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -17,12 +16,11 @@ import IconButton from '@mui/material/IconButton';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import LinearProgress from '@mui/material/LinearProgress';
 import InputAdornment from '@mui/material/InputAdornment';
-import TablePagination from '@mui/material/TablePagination';
-import TablePaginationActions from '@mui/material/TablePagination/TablePaginationActions';
 import { Grid, Select, MenuItem, TextField, InputLabel, FormControl } from '@mui/material';
 
 import Iconify from 'src/components/iconify';
 
+import Table from './Table';
 import { firmAddApi, firmListCount, firmUpdateApi, firmDeleteApi, firmSearchApi, firmLogoUpload } from '../../../actions/firmActions';
 
 const style = {
@@ -273,20 +271,8 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
         {firmList.loading === true && (
           <LinearProgress />
         )}
-        <DataTable
-          columns={columns}
-          data={firmList.firmList}
-        />
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={firmList.firmListCount}
-          rowsPerPage={controller.rowsPerPage}
-          page={controller.page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          ActionsComponent={TablePaginationActions}
-        />
+        <Table handleChangeRowsPerPage={handleChangeRowsPerPage} handleChangePage={handleChangePage} page={controller.page} rowsPerPage={controller.rowsPerPage} count={firmList.firmListCount} columns={columns} firmList={firmList.firmList} />
+        
       </Card>
 
 
