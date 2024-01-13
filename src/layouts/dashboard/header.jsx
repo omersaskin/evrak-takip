@@ -1,3 +1,4 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 
 import Box from '@mui/material/Box';
@@ -10,55 +11,49 @@ import { useResponsive } from 'src/hooks/use-responsive';
 
 import Iconify from 'src/components/iconify';
 
-import { NAV, HEADER } from './config-layout';
-
-// ----------------------------------------------------------------------
+import { HEADER } from './config-layout';
 
 export default function Header({ onOpenNav }) {
   const theme = useTheme();
-
-  const lgUp = useResponsive('up', 'lg');
+  const isMobile = useResponsive('down', 'md'); // Adjust breakpoint as needed
 
   const renderContent = (
     <>
-      {!lgUp && (
+      {isMobile && (
         <IconButton onClick={onOpenNav} sx={{ mr: 1 }}>
           <Iconify icon="eva:menu-2-fill" />
         </IconButton>
       )}
 
-
-
       <Box sx={{ flexGrow: 1 }} />
-
     </>
   );
 
   return (
-    <AppBar
-      style={{ backgroundColor: '#F9FAFB' }}
-      sx={{
-        boxShadow: 'none',
-        height: HEADER.H_MOBILE,
-        zIndex: theme.zIndex.appBar + 1,
-        transition: theme.transitions.create(['height'], {
-          duration: theme.transitions.duration.shorter,
-        }),
-        ...(lgUp && {
-          width: `calc(100% - ${NAV.WIDTH + 1}px)`,
-          height: HEADER.H_DESKTOP,
-        }),
-      }}
-    >
-      <Toolbar
-        sx={{
-          height: 1,
-          px: { lg: 5 },
-        }}
-      >
-        {renderContent}
-      </Toolbar>
-    </AppBar>
+    <>
+      {isMobile && (
+        <AppBar
+          style={{ backgroundColor: '#F9FAFB', zIndex: 0 }}
+          sx={{
+            boxShadow: 'none',
+            height: HEADER.H_MOBILE,
+            zIndex: theme.zIndex.appBar + 1,
+            transition: theme.transitions.create(['height'], {
+              duration: theme.transitions.duration.shorter,
+            }),
+          }}
+        >
+          <Toolbar
+            sx={{
+              height: 1,
+              px: { lg: 5 },
+            }}
+          >
+            {renderContent}
+          </Toolbar>
+        </AppBar>
+      )}
+    </>
   );
 }
 

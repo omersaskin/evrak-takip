@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Modal from '@mui/material/Modal';
 import Stack from '@mui/material/Stack';
+import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Popover from '@mui/material/Popover';
 import { styled } from '@mui/material/styles';
@@ -14,6 +15,7 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import OutlinedInput from '@mui/material/OutlinedInput';
+import LinearProgress from '@mui/material/LinearProgress';
 import InputAdornment from '@mui/material/InputAdornment';
 import TablePagination from '@mui/material/TablePagination';
 import TablePaginationActions from '@mui/material/TablePagination/TablePaginationActions';
@@ -90,25 +92,26 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
   const handleFirmAdd = async (event) => {
     event.preventDefault();
 
-    await firmAddApiAs(firmName, firmShortName, firmType);
-
-    await firmSearchApiAs(controller.search, controller.rowsPerPage, controller.page);
-
     firmNameUpdate('');
     firmShortNameUpdate('');
     firmTypeUpdate('');
+
+    await firmAddApiAs(firmName, firmShortName, firmType);
+
+    await firmSearchApiAs(controller.search, controller.rowsPerPage, controller.page);
 
     handleClose();
   };
 
   const handleFirmUpdate = async (event) => {
+    setOpenMenu(null);
+    
     event.preventDefault();
 
     await firmUpdateApiAs(firmNameEdit, firmShortNameEdit, firmTypeEdit, selectedRow);
 
     await firmSearchApiAs(controller.search, controller.rowsPerPage);
     
-    handleCloseMenu();
     handleCloseEdit();
   };
 
@@ -147,19 +150,34 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
   const columns = [
     {
       name: 'Firma Adı',
-      selector: row => row.company_title,
+      selector: row => (
+        <Stack direction="column" alignItems="flex-start" spacing={2} pl={2} pt={1} pb={1}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Avatar alt="deneme" src="https://picsum.photos/200" style={{ width: 60, height: 60 }} />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="subtitle2" noWrap>
+                {row.company_title}
+              </Typography>
+              <Typography variant="body2" noWrap style={{ fontSize: 12, fontStyle: 'italic' }}>
+                {row.short_name}
+              </Typography>
+            </div>
+          </Stack>
+        </Stack>
+      ),
+      width: '80%', // İlk sütun genişliği
     },
     {
-      name: '',
+      name: 'İşlem',
       selector: row => (
-        <div style={{ textAlign: 'right' }}>
-          <IconButton onClick={(event) => handleOpenMenu(event, row.id, row.company_title, row.short_name, row.firm_type_id)}>
-            <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
-        </div>
+        <IconButton onClick={(event) => handleOpenMenu(event, row.id, row.company_title, row.short_name, row.firm_type_id)}>
+          <Iconify icon="eva:more-vertical-fill" />
+        </IconButton>
       ),
+      width: '20%', // İkinci sütun genişliği
     },
   ];
+  
 
   const handleFirmName = (event) => {
     firmNameUpdate(event.target.value);
@@ -209,7 +227,7 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
   };
   
  
-
+  console.log(firmList.loading)
   
 
   return (
@@ -217,7 +235,7 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <Typography variant="h4">Firma Listesi</Typography>
 
-
+        
       </Stack>
 
       <Card>
@@ -252,6 +270,9 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
             </Button>
           </div>
         </div>
+        {firmList.loading === true && (
+          <LinearProgress />
+        )}
         <DataTable
           columns={columns}
           data={firmList.firmList}
@@ -477,8 +498,9 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
 
 UserPage.propTypes = {
   firmList: PropTypes.shape({
-    firmList: PropTypes.array.isRequired, // Assuming firmList is an array
+    firmList: PropTypes.array.isRequired,
     firmListCount: PropTypes.number.isRequired,
+    loading: PropTypes.bool.isRequired,
   }).isRequired,
   firmListCount: PropTypes.func.isRequired,
   firmListApi: PropTypes.func.isRequired,
@@ -489,6 +511,13 @@ UserPage.propTypes = {
   firmLogoUpload: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = state => ({ firmList: state.firmList, firmListCount: state.firmListCount });
+const mapStateToProps = state => ({
+  firmList: {
+    firmList: state.firmList.firmList,
+    firmListCount: state.firmList.firmListCount,
+    loading: state.firmList.loading,
+  },
+  firmListCount: state.firmListCount,
+});
 
 export default connect(mapStateToProps, { firmListCount, firmAddApi, firmUpdateApi, firmDeleteApi, firmSearchApi, firmLogoUpload })(UserPage);
