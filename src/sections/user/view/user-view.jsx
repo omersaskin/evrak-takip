@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux'
-import { useState, useEffect } from 'react';
+import debounce from 'lodash.debounce';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -216,17 +217,17 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
     });
   };
 
-  const handleChangeSearch = (event) => {
+  const handleChangeSearch = useCallback((event) => {
     setController({
       ...controller,
       search: event.target.value,
-      page: 0
+      page: 0,
     });
-  };
+  }, [controller]);
   
- 
-  console.log(firmList.loading)
+  const debouncedResults = useMemo(() => debounce(handleChangeSearch, 300), [handleChangeSearch]);
   
+  useEffect(() => () => debouncedResults.cancel(), [debouncedResults]);
 
   return (
     <Container>
@@ -240,20 +241,20 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20 }}>
           <div style={{ flex: '1' }}>
-            <OutlinedInput
-              value={controller.search}
-              onChange={handleChangeSearch}
-              placeholder="Firma ara..."
-              sx={{ width: '100%' }} // Set the width to 100%
-              startAdornment={
-                <InputAdornment position="start">
-                  <Iconify
-                    icon="eva:search-fill"
-                    sx={{ color: 'text.disabled', width: 20, height: 20 }}
-                  />
-                </InputAdornment>
-              }
-            />
+          <OutlinedInput
+  onChange={debouncedResults}
+  placeholder="Firma ara..."
+  sx={{ width: '100%' }}
+  startAdornment={
+    <InputAdornment position="start">
+      <Iconify
+        icon="eva:search-fill"
+        sx={{ color: 'text.disabled', width: 20, height: 20 }}
+      />
+    </InputAdornment>
+  }
+/>
+
           </div>
 
           <div style={{ marginLeft: 20 }}>
