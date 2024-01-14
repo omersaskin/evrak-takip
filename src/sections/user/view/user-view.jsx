@@ -331,60 +331,87 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
       >
         <Box sx={style}>
           <form onSubmit={handleFirmAdd}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Button component="label" variant="contained">
-                  Fotoğraf Yükle
-                  <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
-                </Button>
-              </Grid>
-              <Grid item xs={12}>
-                {photo && (
-                  <img
-                    src={photo}
-                    alt="Uploaded"
-                    style={{ maxWidth: 100, height: 100, borderRadius: '50%' }}
-                  />
-                )}
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Firma Tam Ünvan"
-                  variant="outlined"
-                  value={firmName}
-                  onChange={handleFirmName}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Firma Kısa Ad"
-                  variant="outlined"
-                  value={firmShortName}
-                  onChange={handleFirmShortName}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Firma Tipi</InputLabel>
-                  <Select
-                    value={firmType}
-                    label="Firma Tipi"
-                    onChange={handleFirmType}
-                    variant="outlined"
-                  >
-                    <MenuItem value="0">Tüzel</MenuItem>
-                    <MenuItem value="1">Firma</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <Button type="submit" variant="contained" color="primary">
-                  Kaydet
-                </Button>
-              </Grid>
-            </Grid>
+          <Grid container spacing={2}>
+  {/* Left column for photo */}
+  <Grid item xs={12} md={2} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+    
+    {!photo && (
+      <Button
+      component="label"
+      variant="outlined"
+      style={{
+        width: 150,
+        height: 150,
+        borderRadius: '50%', // Make the button circular
+      }}
+    >
+      Fotoğraf Yükle
+      <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
+    </Button>
+    )}
+    {photo && (
+      <img
+        src={photo}
+        alt="Uploaded"
+        style={{ width: 150, height: 150, borderRadius: '50%' }}
+      />
+    )}
+</Grid>
+
+  {/* Right column for the form */}
+  <Grid item xs={12} md={10}>
+    <Grid container spacing={2}>
+      {
+        photo && (
+          <Grid item xs={12}>
+            <Button component="label" variant="contained">
+              Fotoğraf Değiştir
+              <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
+            </Button>
+          </Grid>
+        )
+      }
+      <Grid item xs={12}>
+        <TextField
+          label="Firma Tam Ünvan"
+          variant="outlined"
+          value={firmName}
+          onChange={handleFirmName}
+          fullWidth
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
+          label="Firma Kısa Ad"
+          variant="outlined"
+          value={firmShortName}
+          onChange={handleFirmShortName}
+          fullWidth
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <FormControl fullWidth>
+          <InputLabel>Firma Tipi</InputLabel>
+          <Select
+            value={firmType}
+            label="Firma Tipi"
+            onChange={handleFirmType}
+            variant="outlined"
+          >
+            <MenuItem value="0">Tüzel</MenuItem>
+            <MenuItem value="1">Firma</MenuItem>
+          </Select>
+        </FormControl>
+      </Grid>
+      <Grid item xs={12}>
+        <Button type="submit" variant="contained" color="primary">
+          Kaydet
+        </Button>
+      </Grid>
+    </Grid>
+  </Grid>
+</Grid>
+
           </form>
         </Box>
 

@@ -66,6 +66,10 @@ export const firmLogoUpload = (path, fileExtension, fileName) => async dispatch 
         path,
         ext: fileExtension,
         name: fileName,
+    }, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
     })
     dispatch( {
         type: FIRM_LIST,
