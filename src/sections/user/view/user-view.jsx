@@ -90,27 +90,49 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
 
   const handleFirmAdd = async (event) => {
     event.preventDefault();
+  
+    // Check if firmShortName is empty before proceeding
+    if (!firmShortName.trim()) {
+      // Show an error or take appropriate action for an empty short name
+      console.error('Firm Short Name is required.');
+      return;
+    }
+  
+    
 
+    await firmAddApiAs(firmName, firmShortName, firmType);
+  
+    await firmSearchApiAs(controller.search, controller.rowsPerPage, controller.page);
+  
     firmNameUpdate('');
     firmShortNameUpdate('');
     firmTypeUpdate('');
 
-    await firmAddApiAs(firmName, firmShortName, firmType);
-
-    await firmSearchApiAs(controller.search, controller.rowsPerPage, controller.page);
-
     handleClose();
   };
+  
+  console.log(firmName, 111, firmShortName, 222, firmType)
 
   const handleFirmUpdate = async (event) => {
     setOpenMenu(null);
     
     event.preventDefault();
 
+    // Check if firmShortName is empty before proceeding
+    if (!firmShortNameEdit.trim()) {
+      // Show an error or take appropriate action for an empty short name
+      console.error('Firm Short Name is required.');
+      return;
+    }
+
     await firmUpdateApiAs(firmNameEdit, firmShortNameEdit, firmTypeEdit, selectedRow);
 
     await firmSearchApiAs(controller.search, controller.rowsPerPage);
-    
+
+    firmNameUpdate('');
+    firmShortNameUpdate('');
+    firmTypeUpdate('');
+
     handleCloseEdit();
   };
 
@@ -134,11 +156,7 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
 
     reader.readAsDataURL(file);
 
-    const fileName = file.name; 
-    const fileExtension = fileName.split('.').pop();
-    const path = `Logos/${fileName}`;
-
-    await firmLogoUploadAs(path, fileExtension, fileName);
+    await firmLogoUploadAs(file);
   };
 
   useEffect(() => {
@@ -334,44 +352,38 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
           <form onSubmit={handleFirmAdd}>
           <Grid container spacing={2}>
   {/* Left column for photo */}
-  <Grid item xs={12} md={2} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+  <Grid item xs={12} md={3} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+  
     
     {!photo && (
       <Button
       component="label"
-      variant="outlined"
-      style={{
-        width: 150,
-        height: 150,
-        borderRadius: '50%', // Make the button circular
-      }}
+      variant="contained"
     >
       Fotoğraf Yükle
       <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
     </Button>
     )}
     {photo && (
-      <img
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <img
         src={photo}
         alt="Uploaded"
         style={{ width: 150, height: 150, borderRadius: '50%' }}
       />
-    )}
-</Grid>
-
-  {/* Right column for the form */}
-  <Grid item xs={12} md={10}>
-    <Grid container spacing={2}>
-      {
-        photo && (
-          <Grid item xs={12}>
-            <Button component="label" variant="contained">
+      <Button component="label" variant="contained" style={{ marginTop: 25 }}>
               Fotoğraf Değiştir
               <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
             </Button>
-          </Grid>
-        )
-      }
+      </div>
+    )}
+    
+</Grid>
+
+  {/* Right column for the form */}
+  <Grid item xs={12} md={9}>
+    <Grid container spacing={2}>
+      
       <Grid item xs={12}>
         <TextField
           label="Firma Tam Ünvan"

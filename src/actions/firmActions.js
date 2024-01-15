@@ -60,13 +60,13 @@ export const firmSearchApi = (search, rowsPerPage, page) => async dispatch => {
     }
   };
 
-export const firmLogoUpload = (path, fileExtension, fileName) => async dispatch => {
+export const firmLogoUpload = (file) => async dispatch => {
+    const formData = new FormData();
+    formData.append('file', file);
+
     const res = await axios.post(`${import.meta.env.VITE_API_URL}/upload-files`,
+    formData, 
     {
-        path,
-        ext: fileExtension,
-        name: fileName,
-    }, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
