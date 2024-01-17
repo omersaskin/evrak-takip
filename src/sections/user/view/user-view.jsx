@@ -614,6 +614,9 @@ function UserPage({ firmList, firmLogoListApi: firmLogoListApiAs, firmListCount:
           <Grid container spacing={2}>
 
             <Grid item xs={12} style={{ textAlign: 'center' }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} mt={2}>
+                    <Typography variant="h4" >Firma Sil</Typography>
+                  </Stack>
               <Typography>Silmek istediğinize emin misiniz?</Typography>
             </Grid>
             <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
