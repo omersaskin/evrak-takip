@@ -196,8 +196,8 @@ function UserPage({ firmList, firmLogoListApi: firmLogoListApiAs, firmListCount:
       firmShortNameUpdateEdit('');
       firmTypeUpdateEdit('');
     } 
-  }, [firmList.loading, open, openEdit, openDelete])
-
+  }, [firmList.loading, open, openEdit, openDelete]);
+  
   const handleLogoAdd = async (event) => {
     const file = event.target.files[0];
     const reader = new FileReader();
@@ -457,7 +457,7 @@ function UserPage({ firmList, firmLogoListApi: firmLogoListApiAs, firmListCount:
               {/* Right column for the form */}
               <Grid item xs={12} md={9}>
                 
-              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} mt={2}>
+              <Stack direction="row" alignItems="center" justifyContent="center" mb={2} mt={2}>
                     <Typography variant="h4" >Firma Ekle</Typography>
                   </Stack>
                 <Grid container spacing={2}>
@@ -549,7 +549,7 @@ function UserPage({ firmList, firmLogoListApi: firmLogoListApiAs, firmListCount:
             {/* md={9} - Form and input fields */}
             <Grid item xs={12} md={9}>
               
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} mt={2}>
+            <Stack direction="row" alignItems="center" justifyContent="center" mb={2} mt={2}>
                     <Typography variant="h4">Firma Düzenle</Typography>
                   </Stack>
               <form>
@@ -614,9 +614,10 @@ function UserPage({ firmList, firmLogoListApi: firmLogoListApiAs, firmListCount:
           <Grid container spacing={2}>
 
             <Grid item xs={12} style={{ textAlign: 'center' }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} mt={2}>
-                    <Typography variant="h4" >Firma Sil</Typography>
-                  </Stack>
+            <Stack direction="row" alignItems="center" justifyContent="center" mb={2} mt={2}>
+              <Typography variant="h4">Firma Sil</Typography>
+            </Stack>
+
               <Typography>Silmek istediğinize emin misiniz?</Typography>
             </Grid>
             <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
