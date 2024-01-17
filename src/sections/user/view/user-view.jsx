@@ -1,3 +1,4 @@
+import Swal from 'sweetalert2';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux'
 import debounce from 'lodash.debounce';
@@ -14,6 +15,7 @@ import { styled } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import LoadingButton from '@mui/lab/LoadingButton';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import LinearProgress from '@mui/material/LinearProgress';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -22,7 +24,7 @@ import { Grid, Select, MenuItem, TextField, InputLabel, FormControl } from '@mui
 import Iconify from 'src/components/iconify';
 
 import Table from './Table';
-import { firmAddApi, firmListCount, firmUpdateApi, firmDeleteApi, firmSearchApi, firmLogoUpload } from '../../../actions/firmActions';
+import { firmAddApi, firmListCount, firmUpdateApi, firmDeleteApi, firmSearchApi, firmLogoUpload, firmLogoListApi } from '../../../actions/firmActions';
 
 const style = {
   width: '90%', maxWidth: 1000, mx: 'auto', p: 2,
@@ -31,8 +33,8 @@ const style = {
   left: '50%',
   transform: 'translate(-50%, -50%)',
   bgcolor: 'background.paper',
-  border: '2px solid #000',
   boxShadow: 24,
+  borderRadius: 1, // Add this line to set the border-radius
 };
 
 const VisuallyHiddenInput = styled('input')({
@@ -47,12 +49,13 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmListApiAs, firmAddApi: firmAddApiAs, firmUpdateApi: firmUpdateApiAs, firmDeleteApi: firmDeleteApiAs, firmSearchApi: firmSearchApiAs, firmLogoUpload: firmLogoUploadAs }) {
+function UserPage({ firmList, firmLogoListApi: firmLogoListApiAs, firmListCount: firmListCountAs, firmListApi: firmListApiAs, firmAddApi: firmAddApiAs, firmUpdateApi: firmUpdateApiAs, firmDeleteApi: firmDeleteApiAs, firmSearchApi: firmSearchApiAs, firmLogoUpload: firmLogoUploadAs }) {
   const [controller, setController] = useState({
     page: 0,
     rowsPerPage: 5,
     search: ''
   });
+  const [loading, setLoading] = useState('');
   const [firmName, firmNameUpdate] = useState('');
   const [firmType, firmTypeUpdate] = useState('');
   const [firmShortName, firmShortNameUpdate] = useState('');
@@ -75,7 +78,7 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
   const [openMenu, setOpenMenu] = useState(null);
   const handleOpenMenu = (event, id, company_title, short_name, firm_type_id) => {
     setOpenMenu(event.currentTarget);
-    
+
     selectedRowUpdate(id);
     firmNameUpdateEdit(company_title);
     firmShortNameUpdateEdit(short_name);
@@ -84,70 +87,132 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
   const handleCloseMenu = () => {
     setOpenMenu(null);
   };
-  
+
   const [selectedRow, selectedRowUpdate] = useState('');
   const [photo, photoUpdate] = useState('');
 
   const handleFirmAdd = async (event) => {
-    event.preventDefault();
+    try {
+      setLoading(true);
   
-    // Check if firmShortName is empty before proceeding
-    if (!firmShortName.trim()) {
-      // Show an error or take appropriate action for an empty short name
-      console.error('Firm Short Name is required.');
-      return;
+      event.preventDefault();
+
+      await firmAddApiAs(firmName, firmShortName, firmType);
+
+      await firmSearchApiAs(controller.search, controller.rowsPerPage, controller.page);
+
+      firmNameUpdate('');
+      firmShortNameUpdate('');
+      firmTypeUpdate('');
+
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
     }
-  
-    
-
-    await firmAddApiAs(firmName, firmShortName, firmType);
-  
-    await firmSearchApiAs(controller.search, controller.rowsPerPage, controller.page);
-  
-    firmNameUpdate('');
-    firmShortNameUpdate('');
-    firmTypeUpdate('');
-
-    handleClose();
   };
+
   
-  console.log(firmName, 111, firmShortName, 222, firmType)
 
   const handleFirmUpdate = async (event) => {
-    setOpenMenu(null);
-    
-    event.preventDefault();
+    try {
+      setLoading(true);
+  
+      setOpenMenu(null);
 
-    // Check if firmShortName is empty before proceeding
-    if (!firmShortNameEdit.trim()) {
-      // Show an error or take appropriate action for an empty short name
-      console.error('Firm Short Name is required.');
-      return;
+      event.preventDefault();
+
+      await firmUpdateApiAs(firmNameEdit, firmShortNameEdit, firmTypeEdit, selectedRow);
+
+      await firmSearchApiAs(controller.search, controller.rowsPerPage);
+
+      firmNameUpdateEdit('');
+      firmShortNameUpdateEdit('');
+      firmTypeUpdateEdit('');
+
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
     }
-
-    await firmUpdateApiAs(firmNameEdit, firmShortNameEdit, firmTypeEdit, selectedRow);
-
-    await firmSearchApiAs(controller.search, controller.rowsPerPage);
-
-    firmNameUpdate('');
-    firmShortNameUpdate('');
-    firmTypeUpdate('');
-
-    handleCloseEdit();
   };
 
   const handleFirmDelete = async (event) => {
-    event.preventDefault();
-
-    await firmDeleteApiAs(selectedRow);
-
-    await firmSearchApiAs(controller.search, controller.rowsPerPage);
+    try {
+      setLoading(true);
   
-    handleCloseDelete();
+      setOpenMenu(null);
+
+      event.preventDefault();
+
+      await firmDeleteApiAs(selectedRow);
+
+      await firmSearchApiAs(controller.search, controller.rowsPerPage);
+
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    if(open === true && firmList.loading === true) {
+      handleClose();
+
+      Swal.fire({
+        title: 'Başarılı!',
+        text: 'Firma ekleme işlemi başarıyla gerçekleşti.',
+        icon: 'success',
+        confirmButtonColor: "#000",
+        confirmButtonText: 'Tamam'
+      });
+    } else if(openEdit === true && firmList.loading === true) {
+
+      handleCloseEdit();
+
+      Swal.fire({
+        title: 'Başarılı!',
+        text: 'Firma düzenleme işlemi başarıyla gerçekleşti.',
+        icon: 'success',
+        confirmButtonColor: "#000",
+        confirmButtonText: 'Tamam'
+      });
+    } else if(openDelete === true && firmList.loading === true) {
+      handleCloseDelete();
+
+      Swal.fire({
+        title: 'Başarılı!',
+        text: 'Firma silme işlemi başarıyla gerçekleşti.',
+        icon: 'success',
+        confirmButtonColor: "#000",
+        confirmButtonText: 'Tamam'
+      });
+    }
+
+    if(open === false) {
+      firmNameUpdate('');
+      firmShortNameUpdate('');
+      firmTypeUpdate('');
+    } else if(openEdit === false) {
+      firmNameUpdateEdit('');
+      firmShortNameUpdateEdit('');
+      firmTypeUpdateEdit('');
+    } 
+  }, [firmList.loading, open, openEdit, openDelete])
+
   const handleLogoAdd = async (event) => {
-    const file = event.target.files[0]; 
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      photoUpdate(e.target.result);
+    };
+
+    reader.readAsDataURL(file);
+
+    await firmLogoUploadAs(file);
+  };
+
+  const handleLogoUpdate = async (event) => {
+    const file = event.target.files[0];
     const reader = new FileReader();
 
     reader.onload = (e) => {
@@ -162,7 +227,10 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
   useEffect(() => {
     firmSearchApiAs(controller.search, controller.rowsPerPage, controller.page);
     firmListCountAs();
-  }, [controller.search, controller, controller.rowsPerPage, firmSearchApiAs, firmListCountAs]);
+    firmLogoListApiAs();
+  }, [controller.search, controller, controller.rowsPerPage, firmSearchApiAs, firmListCountAs, firmLogoListApiAs]);
+
+  console.log(firmList.loading)
 
   const columns = [
     {
@@ -182,19 +250,23 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
           </Stack>
         </Stack>
       ),
-      width: '80%', // İlk sütun genişliği
     },
     {
       name: 'İşlem',
       selector: row => (
-        <IconButton onClick={(event) => handleOpenMenu(event, row.id, row.company_title, row.short_name, row.firm_type_id)}>
-          <Iconify icon="eva:more-vertical-fill" />
-        </IconButton>
+        <>
+          <div style={{ flex: 1 }}>{/* Empty div for pushing the icon to the right */}</div>
+          <IconButton onClick={(event) => handleOpenMenu(event, row.id, row.company_title, row.short_name, row.firm_type_id)}>
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
+        </>
       ),
-      width: '20%', // İkinci sütun genişliği
+      right: true, // You can add this property to align the content to the right
     },
   ];
   
+
+
 
   const handleFirmName = (event) => {
     firmNameUpdate(event.target.value);
@@ -242,9 +314,9 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
       page: 0,
     });
   }, [controller]);
-  
+
   const debouncedResults = useMemo(() => debounce(handleChangeSearch, 300), [handleChangeSearch]);
-  
+
   useEffect(() => () => debouncedResults.cancel(), [debouncedResults]);
 
   return (
@@ -252,26 +324,26 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <Typography variant="h4">Firma Listesi</Typography>
 
-        
+
       </Stack>
 
       <Card>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20 }}>
           <div style={{ flex: '1' }}>
-          <OutlinedInput
-  onChange={debouncedResults}
-  placeholder="Firma ara..."
-  sx={{ width: '100%' }}
-  startAdornment={
-    <InputAdornment position="start">
-      <Iconify
-        icon="eva:search-fill"
-        sx={{ color: 'text.disabled', width: 20, height: 20 }}
-      />
-    </InputAdornment>
-  }
-/>
+            <OutlinedInput
+              onChange={debouncedResults}
+              placeholder="Firma ara..."
+              sx={{ width: '100%' }}
+              startAdornment={
+                <InputAdornment position="start">
+                  <Iconify
+                    icon="eva:search-fill"
+                    sx={{ color: 'text.disabled', width: 20, height: 20 }}
+                  />
+                </InputAdornment>
+              }
+            />
 
           </div>
 
@@ -291,7 +363,7 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
           <LinearProgress />
         )}
         <Table handleChangeRowsPerPage={handleChangeRowsPerPage} handleChangePage={handleChangePage} page={controller.page} rowsPerPage={controller.rowsPerPage} count={firmList.firmListCount} columns={columns} firmList={firmList.firmList} />
-        
+
       </Card>
 
 
@@ -349,81 +421,90 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <form onSubmit={handleFirmAdd}>
-          <Grid container spacing={2}>
-  {/* Left column for photo */}
-  <Grid item xs={12} md={3} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-  
-    
-    {!photo && (
-      <Button
-      component="label"
-      variant="contained"
-    >
-      Fotoğraf Yükle
-      <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
-    </Button>
-    )}
-    {photo && (
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <img
-        src={photo}
-        alt="Uploaded"
-        style={{ width: 150, height: 150, borderRadius: '50%' }}
-      />
-      <Button component="label" variant="contained" style={{ marginTop: 25 }}>
-              Fotoğraf Değiştir
-              <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
-            </Button>
-      </div>
-    )}
-    
-</Grid>
 
-  {/* Right column for the form */}
-  <Grid item xs={12} md={9}>
-    <Grid container spacing={2}>
-      
-      <Grid item xs={12}>
-        <TextField
-          label="Firma Tam Ünvan"
-          variant="outlined"
-          value={firmName}
-          onChange={handleFirmName}
-          fullWidth
-        />
-      </Grid>
-      <Grid item xs={12}>
-        <TextField
-          label="Firma Kısa Ad"
-          variant="outlined"
-          value={firmShortName}
-          onChange={handleFirmShortName}
-          fullWidth
-        />
-      </Grid>
-      <Grid item xs={12}>
-        <FormControl fullWidth>
-          <InputLabel>Firma Tipi</InputLabel>
-          <Select
-            value={firmType}
-            label="Firma Tipi"
-            onChange={handleFirmType}
-            variant="outlined"
-          >
-            <MenuItem value="0">Tüzel</MenuItem>
-            <MenuItem value="1">Firma</MenuItem>
-          </Select>
-        </FormControl>
-      </Grid>
-      <Grid item xs={12}>
-        <Button type="submit" variant="contained" color="primary">
-          Kaydet
-        </Button>
-      </Grid>
-    </Grid>
-  </Grid>
-</Grid>
+          <form onSubmit={handleFirmAdd}>
+            <Grid container spacing={2}>
+              {/* Left column for photo */}
+              <Grid item xs={12} md={3} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+
+
+                {!photo && (
+                  <LoadingButton
+                    loading={loading}
+                    component="label"
+                    variant="contained"
+                  >
+                    Fotoğraf Yükle
+                    <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
+                  </LoadingButton>
+                )}
+                {photo && (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <img
+                      src={photo}
+                      alt="Uploaded"
+                      style={{ width: 150, height: 150, borderRadius: '50%' }}
+                    />
+                    <LoadingButton loading={loading} component="label" variant="contained" style={{ marginTop: 25 }}>
+                      Fotoğraf Değiştir
+                      <VisuallyHiddenInput type="file" onChange={handleLogoUpdate} />
+                    </LoadingButton>
+                  </div>
+                )}
+
+              </Grid>
+
+              {/* Right column for the form */}
+              <Grid item xs={12} md={9}>
+                
+              <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} mt={2}>
+                    <Typography variant="h4" >Firma Ekle</Typography>
+                  </Stack>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Firma Tam Ünvan"
+                      variant="outlined"
+                      value={firmName}
+                      onChange={handleFirmName}
+                      fullWidth
+                      required
+                      inputProps={{ maxLength: 100 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Firma Kısa Ad"
+                      variant="outlined"
+                      value={firmShortName}
+                      onChange={handleFirmShortName}
+                      fullWidth
+                      required
+                      inputProps={{ maxLength: 100 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <InputLabel>Firma Tipi</InputLabel>
+                      <Select
+                        value={firmType}
+                        label="Firma Tipi"
+                        onChange={handleFirmType}
+                        variant="outlined"
+                      >
+                        <MenuItem value="0">Tüzel</MenuItem>
+                        <MenuItem value="1">Firma</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <LoadingButton loading={loading} type="submit" variant="contained" color="primary">
+                      Kaydet
+                    </LoadingButton>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
 
           </form>
         </Box>
@@ -437,47 +518,88 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <form>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  label="Firma Tam Ünvan"
-                  variant="outlined"
-                  value={firmNameEdit}
-                  onChange={handleFirmNameEdit}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Firma Kısa Ad"
-                  variant="outlined"
-                  value={firmShortNameEdit}
-                  onChange={handleFirmShortNameEdit}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Firma Tipi</InputLabel>
-                  <Select
-                    value={firmTypeEdit}
-                    label="Firma Tipi"
-                    onChange={handleFirmTypeEdit}
-                    variant="outlined"
-                  >
-                    <MenuItem value="0">Tüzel</MenuItem>
-                    <MenuItem value="1">Firma</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <Button onClick={handleFirmUpdate} type="submit" variant="contained" color="primary">
-                  Kaydet
-                </Button>
-              </Grid>
+          <Grid container spacing={2}>
+            {/* md={3} - Firma Düzenle text */}
+            <Grid item xs={12} md={3} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              {!photo && (
+                <LoadingButton
+                  loading={loading}
+                  component="label"
+                  variant="contained"
+                >
+                  Fotoğraf Yükle
+                  <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
+                </LoadingButton>
+              )}
+              {photo && (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <img
+                    src={photo}
+                    alt="Uploaded"
+                    style={{ width: 150, height: 150, borderRadius: '50%' }}
+                  />
+                  <LoadingButton loading={loading} component="label" variant="contained" style={{ marginTop: 25 }}>
+                    Fotoğraf Değiştir
+                    <VisuallyHiddenInput type="file" onChange={handleLogoAdd} />
+                  </LoadingButton>
+                </div>
+              )}
             </Grid>
-          </form>
+
+            {/* md={9} - Form and input fields */}
+            <Grid item xs={12} md={9}>
+              
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} mt={2}>
+                    <Typography variant="h4">Firma Düzenle</Typography>
+                  </Stack>
+              <form>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Firma Tam Ünvan"
+                      variant="outlined"
+                      value={firmNameEdit}
+                      onChange={handleFirmNameEdit}
+                      fullWidth
+                      required
+                      inputProps={{ maxLength: 100 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Firma Kısa Ad"
+                      variant="outlined"
+                      value={firmShortNameEdit}
+                      onChange={handleFirmShortNameEdit}
+                      fullWidth
+                      required
+                      inputProps={{ maxLength: 100 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <InputLabel>Firma Tipi</InputLabel>
+                      <Select
+                        value={firmTypeEdit}
+                        label="Firma Tipi"
+                        onChange={handleFirmTypeEdit}
+                        variant="outlined"
+                      >
+                        <MenuItem value="0">Tüzel</MenuItem>
+                        <MenuItem value="1">Firma</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <LoadingButton loading={loading} onClick={handleFirmUpdate} type="submit" variant="contained" color="primary">
+                      Kaydet
+                    </LoadingButton>
+                  </Grid>
+                </Grid>
+              </form>
+            </Grid>
+          </Grid>
+
         </Box>
 
       </Modal>
@@ -495,14 +617,15 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
               <Typography>Silmek istediğinize emin misiniz?</Typography>
             </Grid>
             <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
-              <Button
+              <LoadingButton
+                loading={loading}
                 variant="contained"
                 color="primary"
                 style={{ width: '100%', textAlign: 'center' }}
                 onClick={handleFirmDelete}
               >
                 Evet
-              </Button>
+              </LoadingButton>
             </Grid>
             <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center' }}>
               <Button
@@ -525,11 +648,13 @@ function UserPage({ firmList, firmListCount: firmListCountAs, firmListApi: firmL
 UserPage.propTypes = {
   firmList: PropTypes.shape({
     firmList: PropTypes.array.isRequired,
+    firmLogoList: PropTypes.array.isRequired,
     firmListCount: PropTypes.number.isRequired,
     loading: PropTypes.bool.isRequired,
   }).isRequired,
   firmListCount: PropTypes.func.isRequired,
   firmListApi: PropTypes.func.isRequired,
+  firmLogoListApi: PropTypes.func.isRequired,
   firmAddApi: PropTypes.func.isRequired,
   firmUpdateApi: PropTypes.func.isRequired,
   firmDeleteApi: PropTypes.func.isRequired,
@@ -540,10 +665,11 @@ UserPage.propTypes = {
 const mapStateToProps = state => ({
   firmList: {
     firmList: state.firmList.firmList,
+    firmLogoList: state.firmList.firmLogoList,
     firmListCount: state.firmList.firmListCount,
     loading: state.firmList.loading,
   },
   firmListCount: state.firmListCount,
 });
 
-export default connect(mapStateToProps, { firmListCount, firmAddApi, firmUpdateApi, firmDeleteApi, firmSearchApi, firmLogoUpload })(UserPage);
+export default connect(mapStateToProps, { firmLogoListApi, firmListCount, firmAddApi, firmUpdateApi, firmDeleteApi, firmSearchApi, firmLogoUpload })(UserPage);

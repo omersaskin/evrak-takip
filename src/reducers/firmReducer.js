@@ -1,6 +1,7 @@
 const initialState = {
     firmList: [],
     firmListCount: 0,
+    firmLogoList: [],
     loading: false, // make sure you have this property
   };
   
@@ -16,6 +17,11 @@ const initialState = {
         return {
           ...state,
           firmListCount: action.payload,
+        };
+      case 'FIRM_LOGO_LIST':
+        return {
+          ...state,
+          firmLogoList: action.payload,
         };
       case 'LOADING_START':
         return {

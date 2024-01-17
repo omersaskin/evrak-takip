@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import {FIRM_LIST, LOADING_END, LOADING_START, FIRM_LIST_COUNT} from '../types'
+import {FIRM_LIST, LOADING_END, LOADING_START, FIRM_LOGO_LIST, FIRM_LIST_COUNT} from '../types'
 
 export const firmListCount = () => async dispatch => {
     const res = await axios.get(`${import.meta.env.VITE_API_URL}/get_main_companies`)
@@ -74,5 +74,31 @@ export const firmLogoUpload = (file) => async dispatch => {
     dispatch( {
         type: FIRM_LIST,
         payload: res.data.original.data
+    })
+}
+
+export const firmLogoUpdate = (file) => async dispatch => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('file_id', );
+
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/update-file`,
+    formData, 
+    {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+    })
+    dispatch( {
+        type: FIRM_LIST,
+        payload: res.data.original.data
+    })
+}
+
+export const firmLogoListApi = () => async dispatch => {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/logos`)
+    dispatch( {
+        type: FIRM_LOGO_LIST,
+        payload: res.data.original.length
     })
 }

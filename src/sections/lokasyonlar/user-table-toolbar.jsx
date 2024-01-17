@@ -33,7 +33,7 @@ export default function UserTableToolbar({ numSelected, filterName, onFilterName
           variant="outlined"
           sx={{ width: '100%' }} // Set the width to 100%
         >
-          <MenuItem value="">Lokasyon Seçiniz</MenuItem>
+          <MenuItem value="">Firma Seçiniz</MenuItem>
           {firmaListesi.map((firm, key) => (
             <MenuItem key={key} value={firm.id}>
               {firm.company_title}
